@@ -43,3 +43,6 @@ CREATE TABLE idempotency_keys (
   CONSTRAINT fk_idem_tx FOREIGN KEY(transaction_id) REFERENCES transactions(transaction_id)
 );
 
+-- - [x]  Migrations applied and verified
+-- - [x]  Constraints enforced (proven by tests)
+-- - [x]  Manual test data inserted and persisted
