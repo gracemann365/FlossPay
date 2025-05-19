@@ -46,3 +46,7 @@ CREATE TABLE idempotency_keys (
 -- - [x]  Migrations applied and verified
 -- - [x]  Constraints enforced (proven by tests)
 -- - [x]  Manual test data inserted and persisted
+
+-- created  feature/database-component branch
+-- PR -> reviewed -> merged into main 
+--> Database component is ready for use in the project
