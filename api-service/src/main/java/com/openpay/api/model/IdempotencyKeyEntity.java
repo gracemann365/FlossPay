@@ -1,19 +1,48 @@
 package com.openpay.api.model;
 
-import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "idempotency_keys")
 public class IdempotencyKeyEntity {
 
     @Id
-    private String key;
+    @Column(name = "idempotency_key")
+    private String idempotencyKey;
 
-    private Long transactionId;
+    @Column(name = "transaction_id", nullable = false)
+    private String transactionId;
 
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     // Getters and Setters
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }
