@@ -6,6 +6,7 @@ import com.openpay.api.validation.ValidUpi;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class PaymentRequest {
 
@@ -17,8 +18,8 @@ public class PaymentRequest {
     @NotBlank(message = "Receiver UPI is required and must be a valid UPI ID")
     private String receiverUpi;
 
+    @NotNull(message = "Amount is required")
     @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
-    @NotBlank(message = "Amount is required and must be greater than 0")
     private BigDecimal amount;
 
     // Getters & Setters

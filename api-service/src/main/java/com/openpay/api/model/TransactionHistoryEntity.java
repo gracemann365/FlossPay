@@ -19,7 +19,7 @@ public class TransactionHistoryEntity {
     private Long historyId;
 
     @Column(name = "transaction_id", nullable = false)
-    private String transactionId;
+    private Long transactionId;
 
     @Column(name = "prev_status", nullable = false)
     private String prevStatus;
@@ -39,11 +39,11 @@ public class TransactionHistoryEntity {
         this.historyId = historyId;
     }
 
-    public String getTransactionId() {
+    public Long getTransactionId() {
         return transactionId;
     }
 
-    public void setTransactionId(String transactionId) {
+    public void setTransactionId(Long transactionId) {
         this.transactionId = transactionId;
     }
 

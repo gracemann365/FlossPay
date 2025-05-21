@@ -16,8 +16,8 @@ public class IdempotencyKeyEntity {
     private String idempotencyKey;
 
     @Column(name = "transaction_id", nullable = false)
-    private String transactionId;
-
+    private Long transactionId;
+ 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -30,14 +30,14 @@ public class IdempotencyKeyEntity {
         this.idempotencyKey = idempotencyKey;
     }
 
-    public String getTransactionId() {
+    public Long getTransactionId() {
         return transactionId;
     }
-
-    public void setTransactionId(String transactionId) {
+    
+    public void setTransactionId(Long transactionId) {
         this.transactionId = transactionId;
     }
-
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

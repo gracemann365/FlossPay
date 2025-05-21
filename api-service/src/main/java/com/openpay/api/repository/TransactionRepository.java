@@ -4,4 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.openpay.api.model.TransactionEntity;
 
-public interface TransactionRepository extends JpaRepository<TransactionEntity, String> {}
+public interface TransactionRepository extends JpaRepository<TransactionEntity, Long> { }
+

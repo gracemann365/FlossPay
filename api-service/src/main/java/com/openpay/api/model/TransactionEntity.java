@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -13,20 +15,17 @@ import jakarta.persistence.Table;
 public class TransactionEntity {
 
     @Id
-    @Column(name = "transaction_id", nullable = false, length = 36)
-    private String transactionId;
-
-    @Column(nullable = false)
-    private String type;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id; // Use Long for auto-increment PK
 
     @Column(nullable = false)
     private BigDecimal amount;
 
     @Column(nullable = false)
-    private String sender;
+    private String senderUpi;
 
     @Column(nullable = false)
-    private String recipient;
+    private String receiverUpi;
 
     @Column(nullable = false)
     private String status;
@@ -37,69 +36,25 @@ public class TransactionEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // Getters
-    public String getTransactionId() {
-        return transactionId;
-    }
+    // Getters and Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public String getType() {
-        return type;
-    }
+    public BigDecimal getAmount() { return amount; }
+    public void setAmount(BigDecimal amount) { this.amount = amount; }
 
-    public BigDecimal getAmount() {
-        return amount;
-    }
+    public String getSenderUpi() { return senderUpi; }
+    public void setSenderUpi(String senderUpi) { this.senderUpi = senderUpi; }
 
-    public String getSender() {
-        return sender;
-    }
+    public String getReceiverUpi() { return receiverUpi; }
+    public void setReceiverUpi(String receiverUpi) { this.receiverUpi = receiverUpi; }
 
-    public String getRecipient() {
-        return recipient;
-    }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
-    public String getStatus() {
-        return status;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    // Setters
-    public void setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public void setAmount(BigDecimal amount) {
-        this.amount = amount;
-    }
-
-    public void setSender(String sender) {
-        this.sender = sender;
-    }
-
-    public void setRecipient(String recipient) {
-        this.recipient = recipient;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 }

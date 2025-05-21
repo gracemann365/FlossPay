@@ -1,11 +1,15 @@
 package com.openpay.api.controller;
 
+import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.openpay.api.model.TransactionEntity;
 import com.openpay.api.repository.TransactionRepository;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/transaction")
@@ -18,7 +22,7 @@ public class StatusController {
     }
 
     @GetMapping("/{id}/status")
-    public ResponseEntity<?> getStatus(@PathVariable Long id) {
+    public ResponseEntity<?> getStatus(@PathVariable("id") Long id) {
         Optional<TransactionEntity> transaction = transactionRepository.findById(id);
 
         if (transaction.isEmpty()) {
