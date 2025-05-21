@@ -1,0 +1,24 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+**/logs/
+**/tmp/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# System
+.DS_Store
+Thumbs.db
+
+# Env & secrets
+.env
+.env.*
+application-local.yml
+*.log
+
+# OS junk
+*.swp
+api-service/src/main/resources/application.yml
