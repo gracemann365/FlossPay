@@ -8,12 +8,12 @@
 -- =======================================
 CREATE TABLE webhook_callbacks (
   callback_id       BIGSERIAL PRIMARY KEY,
-  transaction_id    VARCHAR(36)    NOT NULL,
+  transaction_id    BIGINT         NOT NULL,
   url               VARCHAR(255)   NOT NULL,
   status            VARCHAR(10)    NOT NULL,
   last_attempted_at TIMESTAMPTZ,
   attempts          INTEGER        DEFAULT 0,
-  CONSTRAINT fk_cb_tx FOREIGN KEY(transaction_id) REFERENCES transactions(transaction_id)
+  CONSTRAINT fk_cb_tx FOREIGN KEY(transaction_id) REFERENCES transactions(id)
 );
 
 -- =======================================
