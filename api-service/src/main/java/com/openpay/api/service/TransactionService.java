@@ -1,11 +1,12 @@
 package com.openpay.api.service;
 
-import com.openpay.api.dto.PaymentRequest;
-import com.openpay.api.model.TransactionEntity;
-import com.openpay.api.repository.TransactionRepository;
+import java.time.LocalDateTime;
+
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import com.openpay.api.model.TransactionEntity;
+import com.openpay.api.repository.TransactionRepository;
+import com.openpay.shared.dto.PaymentRequest;
 
 @Service
 public class TransactionService {

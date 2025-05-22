@@ -6,8 +6,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openpay.api.dto.PaymentRequest;
 import com.openpay.api.service.TransactionService;
+import com.openpay.shared.dto.PaymentRequest;
+import com.openpay.shared.dto.StatusResponse; // <-- Import the shared DTO
 
 import jakarta.validation.Valid;
 
@@ -22,8 +23,10 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<String> initiatePayment(@Valid @RequestBody PaymentRequest request) {
+    public ResponseEntity<StatusResponse> initiatePayment(@Valid @RequestBody PaymentRequest request) {
         Long id = transactionService.createTransaction(request);
-        return ResponseEntity.ok("Transaction queued with ID: " + id);
+        // Fill the status and message as appropriate for your logic
+        StatusResponse response = new StatusResponse(id, "QUEUED", "Transaction queued");
+        return ResponseEntity.ok(response);
     }
 }

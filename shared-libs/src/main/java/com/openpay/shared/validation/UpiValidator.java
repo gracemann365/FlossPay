@@ -1,4 +1,4 @@
-package com.openpay.api.validation;
+package com.openpay.shared.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
