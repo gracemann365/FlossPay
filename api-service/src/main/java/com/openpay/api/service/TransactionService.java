@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import com.openpay.api.model.TransactionEntity;
 import com.openpay.api.repository.TransactionRepository;
 import com.openpay.shared.dto.PaymentRequest;
+import com.openpay.shared.exception.OpenPayException;
 
 @Service
 public class TransactionService {
@@ -19,7 +20,7 @@ public class TransactionService {
 
     public Long createTransaction(PaymentRequest request) {
         if (request.getSenderUpi().equalsIgnoreCase(request.getReceiverUpi())) {
-            throw new IllegalArgumentException("Sender and receiver UPI must be different");
+            throw new OpenPayException("Sender and receiver UPI must be different");
         }
 
         // Stub: idempotency check will go here

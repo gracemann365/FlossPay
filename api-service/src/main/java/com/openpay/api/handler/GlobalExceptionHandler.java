@@ -11,6 +11,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.openpay.shared.exception.InvalidUpiException;
+import com.openpay.shared.exception.OpenPayException;
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -49,4 +52,17 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Internal server error"));
     }
+
+    // Custom Exception Handlers for invalid upi and openpay
+
+    @ExceptionHandler(InvalidUpiException.class)
+    public ResponseEntity<?> handleInvalidUpi(InvalidUpiException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(OpenPayException.class)
+    public ResponseEntity<?> handleOpenPay(OpenPayException ex) {
+        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
+    }
+
 }
