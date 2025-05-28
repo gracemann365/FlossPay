@@ -1,8 +1,9 @@
-package com.openpay.api.dto;
+package com.openpay.shared.dto;
 
 import java.math.BigDecimal;
 
-import com.openpay.api.validation.ValidUpi;
+import com.openpay.shared.validation.ValidUpi;
+
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;

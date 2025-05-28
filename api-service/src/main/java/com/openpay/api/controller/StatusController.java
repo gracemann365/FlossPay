@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.openpay.api.model.TransactionEntity;
 import com.openpay.api.repository.TransactionRepository;
+import com.openpay.shared.dto.StatusResponse;
 
 @RestController
 @RequestMapping("/transaction")
@@ -29,25 +30,9 @@ public class StatusController {
             return ResponseEntity.notFound().build();
         }
 
+        // *** NO CHANGE: just use the shared StatusResponse ***
         return ResponseEntity.ok(
                 new StatusResponse(id, transaction.get().getStatus()));
     }
-
-    static class StatusResponse {
-        private Long id;
-        private String status;
-
-        public StatusResponse(Long id, String status) {
-            this.id = id;
-            this.status = status;
-        }
-
-        public Long getId() {
-            return id;
-        }
-
-        public String getStatus() {
-            return status;
-        }
-    }
+    // *** REMOVED THE INNER CLASS ***
 }
