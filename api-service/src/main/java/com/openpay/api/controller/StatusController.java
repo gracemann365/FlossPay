@@ -10,8 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.openpay.api.model.TransactionEntity;
 import com.openpay.api.repository.TransactionRepository;
-
-// *** THIS IS THE ONLY CHANGE NEEDED: ***
 import com.openpay.shared.dto.StatusResponse;
 
 @RestController
