@@ -2,6 +2,8 @@ package com.openpay.api.service;
 
 import java.time.LocalDateTime;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.openpay.api.model.TransactionEntity;
@@ -15,6 +17,7 @@ public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final IdempotencyService idempotencyService;
+    private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
     public TransactionService(TransactionRepository transactionRepository, IdempotencyService idempotencyService) {
         this.transactionRepository = transactionRepository;
         this.idempotencyService = idempotencyService;
@@ -24,7 +27,7 @@ public class TransactionService {
         if (request.getSenderUpi().equalsIgnoreCase(request.getReceiverUpi())) {
             throw new OpenPayException("Sender and receiver UPI must be different");
         }
-
+        log.info("Creating transaction for sender={} receiver={}", request.getSenderUpi(), request.getReceiverUpi());
         // Idempotency check
         if (idempotencyService.isDuplicate(idempotencyKey)) {
             throw new OpenPayException("Duplicate request");
