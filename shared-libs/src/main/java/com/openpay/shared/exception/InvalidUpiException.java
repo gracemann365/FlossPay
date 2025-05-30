@@ -5,3 +5,4 @@ public class InvalidUpiException extends OpenPayException {
         super(message);
     }
 }
+

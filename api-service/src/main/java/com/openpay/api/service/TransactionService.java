@@ -1,9 +1,12 @@
 package com.openpay.api.service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.openpay.api.model.TransactionEntity;
@@ -11,16 +14,19 @@ import com.openpay.api.repository.TransactionRepository;
 import com.openpay.shared.dto.PaymentRequest;
 import com.openpay.shared.exception.OpenPayException;
 
-
 @Service
 public class TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final IdempotencyService idempotencyService;
     private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
-    public TransactionService(TransactionRepository transactionRepository, IdempotencyService idempotencyService) {
+    private final RedisTemplate<String, Object> redisTemplate;
+
+    public TransactionService(TransactionRepository transactionRepository, IdempotencyService idempotencyService,
+            RedisTemplate<String, Object> redisTemplate) {
         this.transactionRepository = transactionRepository;
         this.idempotencyService = idempotencyService;
+        this.redisTemplate = redisTemplate;
     }
 
     public Long createTransaction(PaymentRequest request, String idempotencyKey) {
@@ -44,6 +50,19 @@ public class TransactionService {
         TransactionEntity saved = transactionRepository.save(entity);
         idempotencyService.saveKey(idempotencyKey, saved.getId());
 
-        return transactionRepository.save(entity).getId();
+        // YOU DONT need it return the id when using redis stream
+        //return transactionRepository.save(entity).getId();
+        // Build payload map for stream
+        Map<String, Object> streamPayload = new HashMap<>();
+        streamPayload.put("txnId", saved.getId());
+        streamPayload.put("senderUpi", saved.getSenderUpi());
+        streamPayload.put("receiverUpi", saved.getReceiverUpi());
+        streamPayload.put("amount", saved.getAmount().toString()); // BigDecimal as string
+
+        // Enqueue to Redis Stream
+        redisTemplate.opsForStream().add("transactions.main", streamPayload);
+        log.info("Enqueued transaction {} to transactions.main stream", saved.getId());
+
+        return saved.getId();
     }
 }
