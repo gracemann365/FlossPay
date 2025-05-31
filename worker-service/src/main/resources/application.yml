@@ -1,8 +1,32 @@
 spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/openpay_db
+    username: postgres
+    password: PG@admin2800
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate # Or none/validate depending on your migration setup
+    show-sql: true
+    properties:
+      hibernate.format_sql: true
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
   data:
     redis:
       host: 127.0.0.1
       port: 6379
+      database: 0
       # password: your_password_here
       timeout: 2000
       jedis:
@@ -12,7 +36,10 @@ spring:
           min-idle: 0
           max-wait: -1
 
+server:
+  port: 8081 # Change ONLY if you want to expose HTTP endpoints for the worker
+
 logging:
   level:
     root: INFO
-    '[org.springframework.data.redis]': DEBUG
+    "[org.springframework.data.redis]": DEBUG

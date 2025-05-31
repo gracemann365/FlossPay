@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -14,19 +15,45 @@ import com.openpay.api.repository.TransactionRepository;
 import com.openpay.shared.dto.PaymentRequest;
 import com.openpay.shared.exception.OpenPayException;
 
+import jakarta.annotation.PostConstruct;
+//this is your consumer for redis 
+
 @Service
-public class TransactionService {
+public class TransactionApiProducer {
 
     private final TransactionRepository transactionRepository;
     private final IdempotencyService idempotencyService;
-    private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
-    private final RedisTemplate<String, Object> redisTemplate;
+    private static final Logger log = LoggerFactory.getLogger(TransactionApiProducer.class);
+    private final RedisTemplate<Object, Object> redisTemplate;
 
-    public TransactionService(TransactionRepository transactionRepository, IdempotencyService idempotencyService,
-            RedisTemplate<String, Object> redisTemplate) {
+    public TransactionApiProducer(TransactionRepository transactionRepository, IdempotencyService idempotencyService,
+            RedisTemplate<Object, Object> redisTemplate) {
         this.transactionRepository = transactionRepository;
         this.idempotencyService = idempotencyService;
         this.redisTemplate = redisTemplate;
+    }
+
+    @PostConstruct
+    public void testApiRedis() {
+        redisTemplate.opsForValue().set("service-check", "API");
+        Object val = redisTemplate.opsForValue().get("service-check");
+        log.info("[API] service-check key in Redis: " + val);
+    }
+
+    @PostConstruct
+    public void printRedisConnection() {
+        RedisConnectionFactory factory = redisTemplate.getConnectionFactory();
+        String hostPort = "";
+        if (factory instanceof org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory) {
+            org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory lettuce = (org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory) factory;
+            hostPort = lettuce.getHostName() + ":" + lettuce.getPort();
+        } else if (factory instanceof org.springframework.data.redis.connection.jedis.JedisConnectionFactory) {
+            org.springframework.data.redis.connection.jedis.JedisConnectionFactory jedis = (org.springframework.data.redis.connection.jedis.JedisConnectionFactory) factory;
+            hostPort = jedis.getHostName() + ":" + jedis.getPort();
+        } else {
+            hostPort = "UnknownFactory: " + factory.getClass().getName();
+        }
+        log.info("[API] Using Redis at: " + hostPort);
     }
 
     public Long createTransaction(PaymentRequest request, String idempotencyKey) {
@@ -51,13 +78,16 @@ public class TransactionService {
         idempotencyService.saveKey(idempotencyKey, saved.getId());
 
         // YOU DONT need it return the id when using redis stream
-        //return transactionRepository.save(entity).getId();
+        // return transactionRepository.save(entity).getId();
         // Build payload map for stream
-        Map<String, Object> streamPayload = new HashMap<>();
+        Map<Object, Object> streamPayload = new HashMap<>();
         streamPayload.put("txnId", saved.getId());
         streamPayload.put("senderUpi", saved.getSenderUpi());
         streamPayload.put("receiverUpi", saved.getReceiverUpi());
         streamPayload.put("amount", saved.getAmount().toString()); // BigDecimal as string
+
+        // test for redis stream same instance
+        redisTemplate.opsForValue().set("service-key", "hello-from-service");
 
         // Enqueue to Redis Stream
         redisTemplate.opsForStream().add("transactions.main", streamPayload);

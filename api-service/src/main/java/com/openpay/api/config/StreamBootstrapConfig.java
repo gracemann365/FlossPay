@@ -15,9 +15,9 @@ public class StreamBootstrapConfig {
     private static final Logger log = LoggerFactory.getLogger(StreamBootstrapConfig.class);
 
     @Bean
-    public CommandLineRunner redisStreamBootstrap(RedisTemplate<String, Object> redisTemplate) {
+    public CommandLineRunner redisStreamBootstrap(RedisTemplate<Object, Object> redisTemplate) {
         return args -> {
-            Map<String, Object> fields = new HashMap<>();
+            Map<Object, Object> fields = new HashMap<>();
             fields.put("test", "init");
             redisTemplate.opsForStream().add("transactions.main", fields);
             redisTemplate.opsForStream().add("transactions.retry", fields);
