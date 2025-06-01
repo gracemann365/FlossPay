@@ -40,4 +40,5 @@ application-local.yml
 
 # Service configs (do not commit real secrets to VCS)
 api-service/src/main/resources/application.yml
-worker-service/src/main/resources/application.yml
+**/application.yml
+
