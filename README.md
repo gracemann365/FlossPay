@@ -1,8 +1,7 @@
-
 ```text
 
-                 /$$$$$$$$/$$                              /$$$$$$$                   
-                | $$_____/ $$                             | $$__  $$                  
+                 /$$$$$$$$/$$                              /$$$$$$$
+                | $$_____/ $$                             | $$__  $$
                 | $$     | $$  /$$$$$$   /$$$$$$$ /$$$$$$$| $$  \ $$/$$$$$$  /$$   /$$
                 | $$$$$  | $$ /$$__  $$ /$$_____//$$_____/| $$$$$$$/____  $$| $$  | $$
                 | $$__/  | $$| $$  \ $$|  $$$$$$|  $$$$$$ | $$____/ /$$$$$$$| $$  | $$
@@ -11,7 +10,7 @@
                 |__/     |__/ \______/ |_______/|_______/ |__/     \_______/ \____  $$
                                                                              /$$  | $$
                                                                             |  $$$$$$/
-                                                                             \______/ 
+                                                                             \______/
 ```
 
 ---
@@ -19,7 +18,8 @@
 **FlossPay** is a **Kernel-inspired**, **enterprise-grade** Free/Libre Open-Source payments aggregator.
 Modeled after **Linux’s** rigorous governance (meritocratic maintainership, strict code review, transparent changelogs) and **Oracle Financials** audit-first architecture (immutable ledgers, compliance-ready schemas), **FlossPay** delivers bank-grade reliability to indie merchants, MSMEs, and developers.
 With a community-driven ethos, FlossPay removes barriers and empowers small businesses with open, transparent infrastructure.
-> **Current Rail Availability**: *v0.2-alpha offers a hardened **UPI rail**, fully tested and validated; downstream rails (cards, wallets, net-banking) are tracked via stable branches and will not affect core stability.*
+
+> **Current Rail Availability**: _v0.2-alpha offers a hardened **UPI rail**, fully tested and validated; downstream rails (cards, wallets, net-banking) are tracked via stable branches and will not affect core stability._
 
 ---
 
@@ -27,11 +27,11 @@ With a community-driven ethos, FlossPay removes barriers and empowers small busi
 
 ### Vision
 
-Payment infrastructure must be **open**, **transparent**, and **gatekeeper-free**.
+Empowers indie merchants, MSMEs, and developers with Payment infrastructure which is **Open**, **Transparent**, and **Accessable**.
 
 ### Mission
 
-Deliver an **auditable**, **modular**, **self-hostable** payments platform that rivals proprietary gateways while remaining FLOSS.
+Deliver an **Auditable**, **Modular**, **Self-hostable** payments platform that delivers Bank-Grade **Reliabilitys** while remaining **FLOSS**.
 
 ---
 
@@ -85,13 +85,13 @@ flowchart TD
 
 **Key Principles**
 
-* **Modularity**: Clear service contracts for scalability.
-* **Async Resilience**: Failure-isolated pipelines via Redis Streams.
-* **Auditability**: Immutable ledger with SHA-256 checksums.
+- **Modularity**: Clear service contracts for scalability.
+- **Async Resilience**: Failure-isolated pipelines via Redis Streams.
+- **Auditability**: Immutable ledger with SHA-256 checksums.
 
 ---
 
-## Project Structure 
+## Project Structure
 
 | Module           | Responsibility                                         | Key Technologies                    |
 | ---------------- | ------------------------------------------------------ | ----------------------------------- |
@@ -103,38 +103,38 @@ flowchart TD
 
 ---
 
-##  Domain Model 
+## Domain Model
 
-| Entity                  | Purpose                     | Core Fields                                            |
-| ----------------------- | --------------------------- | ------------------------------------------------------ |
-| `Transaction`           | Generic payment intent      | id · amount · currency · method · status               |
-| `TransactionHistory`    | Lifecycle state changes     | txn\_id · status\_from · status\_to · timestamp        |
-| `PaymentMethod`         | Supported rails enum        | UPI · CARD · WALLET · NETBANKING                       |
-| `CardTransaction`       | Card-specific data          | pan\_token · expiry · scheme                           |
-| `WalletTransaction`     | Wallet-specific data        | wallet\_id · provider                                  |
-| `IdempotencyKey`        | Guarantees at-most-once     | key · owner · expiry                                   |
-| `WebhookEvent`          | Outbound notifications      | id · type · payload · retries                          |
-| `WebhookCallback`       | Tracks delivery & retries   | callback\_id · txn\_id · url · status · attempts       |
-| `ServiceCircuitBreaker` | Monitors 3rd-party services | service\_name · state · failure\_count · last\_failure |
-| `ClientRateLimit`       | API quota state             | client\_id · tokens · last\_refill                     |
+| Entity                  | Purpose                     | Core Fields                                         |
+| ----------------------- | --------------------------- | --------------------------------------------------- |
+| `Transaction`           | Generic payment intent      | id · amount · currency · method · status            |
+| `TransactionHistory`    | Lifecycle state changes     | txn_id · status_from · status_to · timestamp        |
+| `PaymentMethod`         | Supported rails enum        | UPI · CARD · WALLET · NETBANKING                    |
+| `CardTransaction`       | Card-specific data          | pan_token · expiry · scheme                         |
+| `WalletTransaction`     | Wallet-specific data        | wallet_id · provider                                |
+| `IdempotencyKey`        | Guarantees at-most-once     | key · owner · expiry                                |
+| `WebhookEvent`          | Outbound notifications      | id · type · payload · retries                       |
+| `WebhookCallback`       | Tracks delivery & retries   | callback_id · txn_id · url · status · attempts      |
+| `ServiceCircuitBreaker` | Monitors 3rd-party services | service_name · state · failure_count · last_failure |
+| `ClientRateLimit`       | API quota state             | client_id · tokens · last_refill                    |
 
 ---
 
-## API Reference 
+## API Reference
 
 > **Disclaimer:** Only the `/pay`, `/collect`, `/transaction/{id}/status`, and health-check endpoints are active in this release; other endpoints are planned.
 
-* **Prefix:** `/api/v1`
-* **Auth:** HMAC-SHA256 (`X-FlossPay-Signature` header)
-* **Content-Type:** `application/json`
+- **Prefix:** `/api/v1`
+- **Auth:** HMAC-SHA256 (`X-FlossPay-Signature` header)
+- **Content-Type:** `application/json`
 
 | Method | Endpoint                   | Description                 | Idempotent | Auth | Response Codes  |
 | ------ | -------------------------- | --------------------------- | ---------- | ---- | --------------- |
-| `POST` | `/pay`                     | Initiate UPI payment        | ✅          | HMAC | 201 · 400 · 409 |
-| `POST` | `/collect`                 | Pull payment from payer     | ✅          | HMAC | 202 · 400       |
-| `GET`  | `/transaction/{id}/status` | Retrieve transaction status | ❌          | HMAC | 200 · 404       |
-| `GET`  | `/health/live`             | Liveness probe (no auth)    | ❌          | None | 200             |
-| `GET`  | `/health/ready`            | Readiness probe (no auth)   | ❌          | None | 200 · 503       |
+| `POST` | `/pay`                     | Initiate UPI payment        | ✅         | HMAC | 201 · 400 · 409 |
+| `POST` | `/collect`                 | Pull payment from payer     | ✅         | HMAC | 202 · 400       |
+| `GET`  | `/transaction/{id}/status` | Retrieve transaction status | ❌         | HMAC | 200 · 404       |
+| `GET`  | `/health/live`             | Liveness probe (no auth)    | ❌         | None | 200             |
+| `GET`  | `/health/ready`            | Readiness probe (no auth)   | ❌         | None | 200 · 503       |
 
 <details>
 <summary>cURL Example: `/pay`</summary>
@@ -148,7 +148,7 @@ curl -X POST http://localhost:8080/api/v1/pay \
 
 </details>
 
-*Swagger UI available at `/swagger-ui.html` (auto-generated from OpenAPI 3.1 spec).*
+_Swagger UI available at `/swagger-ui.html` (auto-generated from OpenAPI 3.1 spec)._
 
 ---
 
@@ -167,63 +167,63 @@ curl -X POST http://localhost:8080/api/v1/pay \
 
 ---
 
-## Idempotency & Reliability 
+## Idempotency & Reliability
 
-*Powered by enterprise-grade security and compliance to match Oracle-level standards.*
+_Powered by enterprise-grade security and compliance to match Oracle-level standards._
 
 **Idempotency Header**
 
-* `Idempotency-Key: <uuid4>` enforced per route.
-* Cryptographically signed UUID; replay attacks mitigated via HMAC verification and TTL-based expiration.
+- `Idempotency-Key: <uuid4>` enforced per route.
+- Cryptographically signed UUID; replay attacks mitigated via HMAC verification and TTL-based expiration.
 
 **Retry Strategy**
 
-* Exponential backoff (2¹…2⁵ sec), max 5 retries, then push to DLQ (`transactions.dlq`).
-* Configurable backoff window stored securely; supports FIPS-approved pseudorandom delays.
+- Exponential backoff (2¹…2⁵ sec), max 5 retries, then push to DLQ (`transactions.dlq`).
+- Configurable backoff window stored securely; supports FIPS-approved pseudorandom delays.
 
 **Circuit Breaker**
 
-* Table `service_circuit_breakers` tracks 3rd-party health.
-* Auto-trips on threshold breaches; logs to secure audit vault.
-* Aligned with **ISO 27001**; periodic self-tests for resilience.
+- Table `service_circuit_breakers` tracks 3rd-party health.
+- Auto-trips on threshold breaches; logs to secure audit vault.
+- Aligned with **ISO 27001**; periodic self-tests for resilience.
 
 **Rate Limiter**
 
-* Token-bucket per `client_id` (`client_rate_limits`) with JWT-authenticated quotas.
-* SLA-driven tiered quotas; integrates with **OAuth 2.0** scopes.
-* Rate changes audited via immutable ledgers.
+- Token-bucket per `client_id` (`client_rate_limits`) with JWT-authenticated quotas.
+- SLA-driven tiered quotas; integrates with **OAuth 2.0** scopes.
+- Rate changes audited via immutable ledgers.
 
 **Audit Trail**
 
-* All state changes in immutable PostgreSQL `INSERT ONLY` partitions.
-* SHA-256 checksums per record; tamper-evident logs.
-* Logs shipped to **ELK stack** (Elasticsearch, Logstash, Kibana) with field‑level encryption at rest.
-* Complies with **PCI‑DSS** for logging and retention.
+- All state changes in immutable PostgreSQL `INSERT ONLY` partitions.
+- SHA-256 checksums per record; tamper-evident logs.
+- Logs shipped to **ELK stack** (Elasticsearch, Logstash, Kibana) with field‑level encryption at rest.
+- Complies with **PCI‑DSS** for logging and retention.
 
 **Data Encryption & Key Management**
 
-* AES-256-GCM encryption at rest for sensitive data.
-* Keys managed via **AWS KMS** or on-prem HSM; PCI 3DS compliance.
+- AES-256-GCM encryption at rest for sensitive data.
+- Keys managed via **AWS KMS** or on-prem HSM; PCI 3DS compliance.
 
 **Transport Security**
 
-* All inter-service calls over TLS 1.3 (mutual auth supported).
-* HMAC-SHA256 signatures on API requests; KMIP-compliant key rotation.
+- All inter-service calls over TLS 1.3 (mutual auth supported).
+- HMAC-SHA256 signatures on API requests; KMIP-compliant key rotation.
 
 **Compliance & Monitoring**
 
-* **PCI‑DSS Level 1** ready; SOC 2 controls implemented.
-* Prometheus Alertmanager detects anomaly in retry/failure rates.
-* PagerDuty alerts for DLQ backlogs, circuit‑breaker events.
+- **PCI‑DSS Level 1** ready; SOC 2 controls implemented.
+- Prometheus Alertmanager detects anomaly in retry/failure rates.
+- PagerDuty alerts for DLQ backlogs, circuit‑breaker events.
 
 **Governance & Review**
 
-* Enforces **CIS Benchmarks**; CI checks for compliance.
-* Quarterly 3rd‑party pen tests; reports published in security portal.
+- Enforces **CIS Benchmarks**; CI checks for compliance.
+- Quarterly 3rd‑party pen tests; reports published in security portal.
 
 ---
 
-## Getting Started 
+## Getting Started
 
 1. **Clone & Bootstrap**
 
@@ -231,6 +231,7 @@ curl -X POST http://localhost:8080/api/v1/pay \
    git clone https://github.com/flosspay/flosspay.git && cd flosspay
    ./mvnw verify -Pdev
    ```
+
 2. **Provision PostgreSQL & Redis**
 
    ```bash
@@ -242,6 +243,7 @@ curl -X POST http://localhost:8080/api/v1/pay \
    # Redis (Memurai or redis-stack)
    redis-cli ping  # -> PONG
    ```
+
 3. **Run All Services (Dev Mode)**
 
    ```bash
@@ -250,7 +252,7 @@ curl -X POST http://localhost:8080/api/v1/pay \
 
 ---
 
-##  Production Readiness 
+## Production Readiness
 
 | Capability         | Implementation                                                         |
 | ------------------ | ---------------------------------------------------------------------- |
@@ -262,18 +264,18 @@ curl -X POST http://localhost:8080/api/v1/pay \
 
 ---
 
-## Testing & Benchmarking 
+## Testing & Benchmarking
 
-* **Unit Tests:** 80%+ coverage; mutation testing via PIT.
-* **Integration Tests:** Testcontainers spin up Postgres & Redis.
-* **End-to-End Tests:** Gatling scenarios simulating `/pay → /status` loops.
-* **Performance:** CI perf job targets 1k TPS.
+- **Unit Tests:** 80%+ coverage; mutation testing via PIT.
+- **Integration Tests:** Testcontainers spin up Postgres & Redis.
+- **End-to-End Tests:** Gatling scenarios simulating `/pay → /status` loops.
+- **Performance:** CI perf job targets 1k TPS.
 
 CI pipeline defined in `.github/workflows/ci.yml` with stages: lint → test → coverage → perf.
 
 ---
 
-##  Contributing 
+## Contributing
 
 1. **Fork** the repo → create a `feature/<topic>` branch.
 2. Run `./scripts/pre-commit.sh` (lint, tests).
@@ -284,18 +286,17 @@ Refer to [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](do
 
 ---
 
-##  Community & Support
+## Community & Support
 
-* **GitHub Issues:** Report bugs & request features.
-* **GitHub Discussions:** Ask design questions & propose RFCs.
-* **Security Vulnerabilities:** Email `security@flosspay.dev` (GPG key in repo).
+- **GitHub Issues:** Report bugs & request features.
+- **GitHub Discussions:** Ask design questions & propose RFCs.
+- **Security Vulnerabilities:** Email `security@flosspay.dev` (GPG key in repo).
 
 ---
 
-## License & Maintainers 
+## License & Maintainers
 
-* **License:** MIT (see [`LICENSE`](LICENSE)).
-* **Core Maintainer:** David Grace — Bangalore, IN.
+- **License:** MIT (see [`LICENSE`](LICENSE)).
+- **Core Maintainer:** David Grace — Bangalore, IN.
 
 For sponsorship inquiries or further engagement, open an issue or discussion.
-
