@@ -35,6 +35,24 @@ Deliver an **Auditable**, **Modular**, **Self-hostable** payments platform that 
 
 ---
 
+# ⚠️ **Legal Notice**
+
+> **This software is provided “AS IS” and “AS AVAILABLE” — with _NO WARRANTY_ of any kind.**
+>
+> By accessing, using, modifying, or distributing this project, you AGREE that:
+>
+> - The authors and contributors are **NOT liable** for any damages, legal issues, or regulatory actions (direct or indirect) arising from any use of this software.
+> - This project is for **educational and template purposes** ONLY.  
+>   **Any commercial, financial, or production use is 100% at your own risk.**
+> - If you use this software in any operational, production, or commercial context, you are **solely responsible** for all legal, regulatory, and compliance obligations—US, EU, and international.
+> - See [LICENSE](LICENSE) for full terms.
+>
+> **If you do NOT agree to these terms, do NOT use or access this codebase.**
+
+---
+
+
+
 ## Table of Contents
 
 1. [Vision & Mission](#vision--mission)
@@ -296,7 +314,9 @@ Refer to [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](do
 
 ## License & Maintainers
 
-- **License:** MIT (see [`LICENSE`](LICENSE)).
-- **Core Maintainer:** David Grace — Bangalore, IN.
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-For sponsorship inquiries or further engagement, open an issue or discussion.
+- **License:** [MIT License](LICENSE)
+- **Core Maintainer:** David Grace (Bangalore, IN)
+
+For sponsorship, collaboration, or professional engagement, open an issue or start a discussion.
