@@ -1,3 +1,36 @@
+<!--
+  ──────────────────────────────────────────────────────────────────────────────
+  OpenPay UPI Gateway — Parent Maven POM (Project Object Model)
+
+  This file defines the parent POM for the modular OpenPay UPI Gateway system.
+
+  MODULES COVERED:
+    • api-service    — Public REST API, DB/Redis, transaction processing
+    • worker-service — Async job consumer, queue processor
+    • shared-libs    — DTOs, exception types, validation annotations
+    • database       — (Optional) for DB tool configs/migrations
+
+  CORE RESPONSIBILITIES:
+    • Aggregates all modules for unified build/lifecycle control
+    • Sets core Java and Spring Boot versions (see <properties>)
+    • Manages global dependency versions and plugin management
+    • Ensures all modules inherit common build/test settings
+
+  USAGE/BEST PRACTICES:
+    • All dependency and plugin upgrades should be made here
+    • New modules: add to the <modules> section below
+    • Do NOT declare app-level dependencies here unless truly shared by all
+    • For troubleshooting, check this file first for version or plugin drift
+
+  AUTHORSHIP & AUDIT:
+    • Author: David Grace
+    • Version: 1.0-SNAPSHOT
+    • Last updated: 2024-06-01
+    • Audit: All module and dependency changes must be PR-reviewed
+
+  ──────────────────────────────────────────────────────────────────────────────
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
@@ -9,6 +42,7 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
+  <!-- ===== MODULE STRUCTURE ===== -->
   <modules>
     <module>api-service</module>
     <module>worker-service</module>
@@ -16,11 +50,13 @@
     <module>database</module>
   </modules>
 
+  <!-- ===== PROJECT PROPERTIES ===== -->
   <properties>
     <java.version>21</java.version>
     <spring.boot.version>3.2.4</spring.boot.version>
   </properties>
 
+  <!-- ===== DEPENDENCY MANAGEMENT ===== -->
   <dependencyManagement>
     <dependencies>
       <dependency>
@@ -33,6 +69,7 @@
     </dependencies>
   </dependencyManagement>
 
+  <!-- ===== BUILD PLUGINS & MANAGEMENT ===== -->
   <build>
     <pluginManagement>
       <plugins>
@@ -43,18 +80,17 @@
       </plugins>
     </pluginManagement>
 
-   <plugins>
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-compiler-plugin</artifactId>
-      <version>3.11.0</version>
-      <configuration>
-        <source>${java.version}</source>
-        <target>${java.version}</target>
-      </configuration>
-    </plugin>
-  </plugins>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <source>${java.version}</source>
+          <target>${java.version}</target>
+        </configuration>
+      </plugin>
+    </plugins>
 
-    
   </build>
 </project>

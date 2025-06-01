@@ -10,39 +10,82 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.openpay.api.model.TransactionEntity;
-import com.openpay.api.repository.TransactionRepository;
+import com.openpay.api.model.TransactionApiEntity;
+import com.openpay.api.repository.TransactionApiRepository;
 import com.openpay.shared.dto.PaymentRequest;
 import com.openpay.shared.exception.OpenPayException;
 
 import jakarta.annotation.PostConstruct;
-//this is your consumer for redis 
 
+/**
+ * <h2>TransactionApiProducer</h2>
+ * <p>
+ * Service class responsible for orchestrating payment transaction creation,
+ * ensuring idempotency, persisting transaction data, and publishing jobs to the
+ * Redis stream.
+ * </p>
+ *
+ * <ul>
+ * <li>Handles business logic for the `/pay` endpoint (see
+ * {@link com.openpay.api.controller.TransactionController})</li>
+ * <li>Performs validation (e.g., sender ≠ receiver, idempotency key
+ * uniqueness)</li>
+ * <li>Persists transaction to the database and pushes payload to Redis for
+ * async processing</li>
+ * </ul>
+ *
+ * <b>How it works:</b>
+ * <ol>
+ * <li>Validates and persists the transaction</li>
+ * <li>Checks and stores idempotency keys to avoid double-processing</li>
+ * <li>Pushes a job to the Redis stream for the worker service to consume</li>
+ * </ol>
+ *
+ * @author David Grace
+ * @since 1.0
+ */
 @Service
 public class TransactionApiProducer {
 
-    private final TransactionRepository transactionRepository;
+    private final TransactionApiRepository transactionApiRepository;
     private final IdempotencyService idempotencyService;
     private static final Logger log = LoggerFactory.getLogger(TransactionApiProducer.class);
-    private final RedisTemplate<Object, Object> redisTemplate;
+    private final RedisTemplate<Object, Object> redisApiTemplate;
 
-    public TransactionApiProducer(TransactionRepository transactionRepository, IdempotencyService idempotencyService,
-            RedisTemplate<Object, Object> redisTemplate) {
-        this.transactionRepository = transactionRepository;
+    /**
+     * Constructs the TransactionApiProducer with required dependencies via bean
+     * injection.
+     *
+     * @param transactionApiRepository JPA repository for persisting transactions
+     * @param idempotencyService       Service for idempotency key handling
+     * @param redisApiTemplate            RedisTemplate for queueing jobs to stream
+     */
+    public TransactionApiProducer(TransactionApiRepository transactionApiRepository,
+            IdempotencyService idempotencyService,
+            RedisTemplate<Object, Object> redisApiTemplate) {
+        this.transactionApiRepository = transactionApiRepository;
         this.idempotencyService = idempotencyService;
-        this.redisTemplate = redisTemplate;
+        this.redisApiTemplate = redisApiTemplate;
     }
 
+    /**
+     * Verifies API ↔ Redis connection on startup (debug/logging only).
+     */
     @PostConstruct
     public void testApiRedis() {
-        redisTemplate.opsForValue().set("service-check", "API");
-        Object val = redisTemplate.opsForValue().get("service-check");
-        log.info("[API] service-check key in Redis: " + val);
+        redisApiTemplate.opsForValue().set("service-check", "API");
+        Object val = redisApiTemplate.opsForValue().get("service-check");
+        log.info("[API] service-check key in Redis: {}", val);
     }
 
+    /**
+     * Logs which Redis connection factory (Lettuce/Jedis) and host:port is being
+     * used.
+     * For dev/local debugging.
+     */
     @PostConstruct
     public void printRedisConnection() {
-        RedisConnectionFactory factory = redisTemplate.getConnectionFactory();
+        RedisConnectionFactory factory = redisApiTemplate.getConnectionFactory();
         String hostPort = "";
         if (factory instanceof org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory) {
             org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory lettuce = (org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory) factory;
@@ -53,46 +96,65 @@ public class TransactionApiProducer {
         } else {
             hostPort = "UnknownFactory: " + factory.getClass().getName();
         }
-        log.info("[API] Using Redis at: " + hostPort);
+        log.info("[API] Using Redis at: {}", hostPort);
     }
 
-    public Long createTransaction(PaymentRequest request, String idempotencyKey) {
-        if (request.getSenderUpi().equalsIgnoreCase(request.getReceiverUpi())) {
+    /**
+     * Main service method for creating and queuing a payment transaction.
+     *
+     * <p>
+     * Steps:
+     * <ol>
+     * <li>Validates sender and receiver UPI IDs</li>
+     * <li>Checks idempotency to prevent duplicate transactions</li>
+     * <li>Persists the new transaction in the database</li>
+     * <li>Stores the idempotency key (after successful DB save)</li>
+     * <li>Builds a payload and pushes it to the Redis stream
+     * (<code>transactions.main</code>)</li>
+     * </ol>
+     * </p>
+     *
+     * @param paymentRequestDto        Payment details from the API
+     * @param idempotencyKey Unique client-supplied key for idempotency enforcement
+     * @return transaction ID of the newly created payment
+     * @throws OpenPayException for business rule violations (e.g., duplicate key,
+     *                          sender = receiver)
+     */
+    public Long createTransaction(PaymentRequest paymentRequestDto, String idempotencyKey) {
+        if (paymentRequestDto.getSenderUpi().equalsIgnoreCase(paymentRequestDto.getReceiverUpi())) {
             throw new OpenPayException("Sender and receiver UPI must be different");
         }
-        log.info("Creating transaction for sender={} receiver={}", request.getSenderUpi(), request.getReceiverUpi());
-        // Idempotency check
+        log.info("Creating transaction for sender={} receiver={}", paymentRequestDto.getSenderUpi(), paymentRequestDto.getReceiverUpi());
+
+        // Idempotency check: throws if duplicate request is detected
         if (idempotencyService.isDuplicate(idempotencyKey)) {
             throw new OpenPayException("Duplicate request");
         }
 
-        TransactionEntity entity = new TransactionEntity();
-        entity.setSenderUpi(request.getSenderUpi());
-        entity.setReceiverUpi(request.getReceiverUpi());
-        entity.setAmount(request.getAmount());
-        entity.setStatus("queued");
-        entity.setCreatedAt(LocalDateTime.now());
+        // Build and persist transaction entity
+        TransactionApiEntity liveTransactionApiEntity = new TransactionApiEntity();
+        liveTransactionApiEntity.setSenderUpi(paymentRequestDto.getSenderUpi());
+        liveTransactionApiEntity.setReceiverUpi(paymentRequestDto.getReceiverUpi());
+        liveTransactionApiEntity.setAmount(paymentRequestDto.getAmount());
+        liveTransactionApiEntity.setStatus("queued");
+        liveTransactionApiEntity.setCreatedAt(LocalDateTime.now());
 
-        // Store idempotency key after successful transaction save
-        TransactionEntity saved = transactionRepository.save(entity);
-        idempotencyService.saveKey(idempotencyKey, saved.getId());
+        TransactionApiEntity savedTransactionApiEntity = transactionApiRepository.save(liveTransactionApiEntity);
 
-        // YOU DONT need it return the id when using redis stream
-        // return transactionRepository.save(entity).getId();
-        // Build payload map for stream
+        // Record idempotency key after successful save
+        idempotencyService.saveKey(idempotencyKey, savedTransactionApiEntity.getId());
+
+        // Prepare and push message to Redis Stream
         Map<Object, Object> streamPayload = new HashMap<>();
-        streamPayload.put("txnId", saved.getId());
-        streamPayload.put("senderUpi", saved.getSenderUpi());
-        streamPayload.put("receiverUpi", saved.getReceiverUpi());
-        streamPayload.put("amount", saved.getAmount().toString()); // BigDecimal as string
+        streamPayload.put("txnId", savedTransactionApiEntity.getId());
+        streamPayload.put("senderUpi", savedTransactionApiEntity.getSenderUpi());
+        streamPayload.put("receiverUpi", savedTransactionApiEntity.getReceiverUpi());
+        streamPayload.put("amount", savedTransactionApiEntity.getAmount().toString());
 
-        // test for redis stream same instance
-        redisTemplate.opsForValue().set("service-key", "hello-from-service");
+        redisApiTemplate.opsForValue().set("service-key", "hello-from-service"); // For dev/test only
+        redisApiTemplate.opsForStream().add("transactions.main", streamPayload);
+        log.info("Enqueued transaction {} to transactions.main stream", savedTransactionApiEntity.getId());
 
-        // Enqueue to Redis Stream
-        redisTemplate.opsForStream().add("transactions.main", streamPayload);
-        log.info("Enqueued transaction {} to transactions.main stream", saved.getId());
-
-        return saved.getId();
+        return savedTransactionApiEntity.getId();
     }
 }
