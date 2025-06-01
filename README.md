@@ -1,29 +1,24 @@
 
-<div align="center">
-
 ```text
 
- /$$$$$$$$/$$                              /$$$$$$$                   
-| $$_____/ $$                             | $$__  $$                  
-| $$     | $$  /$$$$$$   /$$$$$$$ /$$$$$$$| $$  \ $$/$$$$$$  /$$   /$$
-| $$$$$  | $$ /$$__  $$ /$$_____//$$_____/| $$$$$$$/____  $$| $$  | $$
-| $$__/  | $$| $$  \ $$|  $$$$$$|  $$$$$$ | $$____/ /$$$$$$$| $$  | $$
-| $$     | $$| $$  | $$ \____  $$\____  $$| $$     /$$__  $$| $$  | $$
-| $$     | $$|  $$$$$$/ /$$$$$$$//$$$$$$$/| $$    |  $$$$$$$|  $$$$$$$
-|__/     |__/ \______/ |_______/|_______/ |__/     \_______/ \____  $$
-                                                             /$$  | $$
-                                                            |  $$$$$$/
-                                                             \______/ 
+                                       /$$$$$$$$/ $$                              /$$$$$$$                   
+                                       | $$_____/ $$                             | $$__  $$                  
+                                       | $$     | $$  /$$$$$$   /$$$$$$$ /$$$$$$$| $$  \ $$/$$$$$$  /$$   /$$
+                                       | $$$$$  | $$ /$$__  $$ /$$_____//$$_____/| $$$$$$$/____  $$| $$  | $$
+                                       | $$__/  | $$| $$  \ $$|  $$$$$$|  $$$$$$ | $$____/ /$$$$$$$| $$  | $$
+                                       | $$     | $$| $$  | $$ \____  $$\____  $$| $$     /$$__  $$| $$  | $$
+                                       | $$     | $$|  $$$$$$/ /$$$$$$$//$$$$$$$/| $$    |  $$$$$$$|  $$$$$$$
+                                       |__/     |__/ \______/ |_______/|_______/ |__/     \_______/ \____  $$
+                                                                                                    /$$  | $$
+                                                                                                   |  $$$$$$/
+                                                                                                    \______/ 
 ```
-
-</div>
 
 ---
 
-> **FlossPay** is a **Kernel-inspired**, **enterprise-grade** Free/Libre Open-Source payments aggregator.
-> Modeled after Linux’s rigorous governance (meritocratic maintainership, strict code review, transparent changelogs) and Oracle Financials’ audit-first architecture (immutable ledgers, compliance-ready schemas), **FlossPay** delivers bank-grade reliability to indie merchants, MSMEs, and developers.
-> With a community-driven ethos, FlossPay removes barriers and empowers small businesses with open, transparent infrastructure.
->
+**FlossPay** is a **Kernel-inspired**, **enterprise-grade** Free/Libre Open-Source payments aggregator.
+Modeled after **Linux’s** rigorous governance (meritocratic maintainership, strict code review, transparent changelogs) and **Oracle Financials** audit-first architecture (immutable ledgers, compliance-ready schemas), **FlossPay** delivers bank-grade reliability to indie merchants, MSMEs, and developers.
+With a community-driven ethos, FlossPay removes barriers and empowers small businesses with open, transparent infrastructure.
 > **Current Rail Availability**: *v0.2-alpha offers a hardened **UPI rail**, fully tested and validated; downstream rails (cards, wallets, net-banking) are tracked via stable branches and will not affect core stability.*
 
 ---
@@ -40,7 +35,7 @@ Deliver an **auditable**, **modular**, **self-hostable** payments platform that 
 
 ---
 
-## == Table of Contents ==
+## Table of Contents
 
 1. [Vision & Mission](#vision--mission)
 2. [Solution Architecture](#solution-architecture)
@@ -51,14 +46,14 @@ Deliver an **auditable**, **modular**, **self-hostable** payments platform that 
 7. [Idempotency & Reliability](#idempotency--reliability)
 8. [Getting Started](#getting-started)
 9. [Production Readiness](#production-readiness)
-10. [Testing & Auditing](#testing--auditing)
+10. [Testing & Auditing](#testing--benchmarking)
 11. [Contributing](#contributing)
 12. [Community & Support](#community--support)
 13. [License & Maintainers](#license--maintainers)
 
 ---
 
-## == Solution Architecture ==
+## Solution Architecture
 
 <details>
 <summary>View Architecture Diagram</summary>
@@ -96,7 +91,7 @@ flowchart TD
 
 ---
 
-## == Project Structure ==
+## Project Structure 
 
 | Module           | Responsibility                                         | Key Technologies                    |
 | ---------------- | ------------------------------------------------------ | ----------------------------------- |
@@ -108,7 +103,7 @@ flowchart TD
 
 ---
 
-## == Domain Model ==
+##  Domain Model 
 
 | Entity                  | Purpose                     | Core Fields                                            |
 | ----------------------- | --------------------------- | ------------------------------------------------------ |
@@ -125,7 +120,7 @@ flowchart TD
 
 ---
 
-## == API Reference ==
+## API Reference 
 
 > **Disclaimer:** Only the `/pay`, `/collect`, `/transaction/{id}/status`, and health-check endpoints are active in this release; other endpoints are planned.
 
@@ -157,7 +152,7 @@ curl -X POST http://localhost:8080/api/v1/pay \
 
 ---
 
-## == Roadmap ==
+## Roadmap
 
 | Phase / Branch                   | Core Deliverables                                   | Why it Matters                |
 | -------------------------------- | --------------------------------------------------- | ----------------------------- |
@@ -172,7 +167,7 @@ curl -X POST http://localhost:8080/api/v1/pay \
 
 ---
 
-## == Idempotency & Reliability ==
+## Idempotency & Reliability 
 
 *Powered by enterprise-grade security and compliance to match Oracle-level standards.*
 
@@ -228,7 +223,7 @@ curl -X POST http://localhost:8080/api/v1/pay \
 
 ---
 
-## == Getting Started ==
+## Getting Started 
 
 1. **Clone & Bootstrap**
 
@@ -267,7 +262,7 @@ curl -X POST http://localhost:8080/api/v1/pay \
 
 ---
 
-## == Testing & Auditing ==
+## Testing & Benchmarking 
 
 * **Unit Tests:** 80%+ coverage; mutation testing via PIT.
 * **Integration Tests:** Testcontainers spin up Postgres & Redis.
@@ -278,7 +273,7 @@ CI pipeline defined in `.github/workflows/ci.yml` with stages: lint → test →
 
 ---
 
-## == Contributing ==
+##  Contributing 
 
 1. **Fork** the repo → create a `feature/<topic>` branch.
 2. Run `./scripts/pre-commit.sh` (lint, tests).
@@ -289,7 +284,7 @@ Refer to [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](do
 
 ---
 
-## == Community & Support ==
+##  Community & Support
 
 * **GitHub Issues:** Report bugs & request features.
 * **GitHub Discussions:** Ask design questions & propose RFCs.
@@ -297,7 +292,7 @@ Refer to [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](do
 
 ---
 
-## == License & Maintainers ==
+## License & Maintainers 
 
 * **License:** MIT (see [`LICENSE`](LICENSE)).
 * **Core Maintainer:** David Grace — Bangalore, IN.
