@@ -1,114 +1,122 @@
 # OpenPay UPI Gateway
 
-A modular, high-performance UPI payment gateway system built for reliability, compliance, and scalability.
+**OpenPay UPI Gateway** is a modular, high-performance payment system designed for seamless, compliant, and scalable UPI transaction processing in Java/Spring Boot.
 
 ---
 
-## ✅ Phase 1: Database Component
+## Overview
 
-* **Database:** PostgreSQL 16
-* **Schema Management:** Flyway SQL migrations
-* **DB GUI:** DBeaver
-* **Testing:** Verified locally on Windows (Native)
+OpenPay is architected for real-world reliability and modularity, featuring:
 
-### Core Tables
-
-* **`transactions`**: Main ledger for all UPI transactions
-* **`transaction_history`**: Audit log of all transaction state changes
-* **`idempotency_keys`**: Prevents duplicate processing of API requests
-
-### Status
-
-* ✅ Database schema fully designed, migrated, and validated
-* ✅ Integrity constraints rigorously enforced
-* ✅ Test data successfully inserted and verified
-* ✅ Version-controlled in Git
+- Clear separation of API, worker, and shared libraries
+- Database migration/versioning with Flyway
+- Native local development (no Docker required)
+- Designed for rapid extensibility and enterprise compliance
 
 ---
 
-## ✅ Phase 2: API Service (Spring Boot)
+## System Architecture
 
-* **Framework:** Spring Boot 3.x
-* **Language & Build Tool:** Java 21, Maven
-* **Validation:** Jakarta Validation API (with custom constraints)
-* **Error Handling:** Global exception handling with structured responses
+- **Database:** PostgreSQL 16 (with Flyway migrations)
+- **API Service:** Java 21, Spring Boot 3.x (RESTful, validation, error handling)
+- **Worker Service:** Asynchronous Redis-based transaction processor (in development)
+- **Shared Libraries:** DTOs, exceptions, validation, idempotency logic
 
-### APIs Implemented
+```
 
-* **`POST /pay`**: Initiate a new transaction
-* **`GET /transaction/{id}/status`**: Retrieve the status of a transaction
++-----------+      +-------------------+      +-------------------+
+\|  Client   | ---> |   API Service     | ---> |   Database        |
+\|  (curl)   |      | (Spring Boot)     |      |  (PostgreSQL)     |
++-----------+      +-------------------+      +-------------------+
+|
+v
++-------------------+
+\| Worker Service    |
+\| (Async, Redis)    |
++-------------------+
 
-### Status
-
-* ✅ API service fully implemented and integrated with the database
-* ✅ Complete DTO validation, including custom UPI ID validations
-* ✅ Robust global error handling
-* ✅ Local API and database testing completed successfully
-* ✅ Version-controlled and merged into main branch
-
----
-
-## 🚀 Next Steps: Shared Utilities (In Progress)
-
-**Shared Libraries & Utilities:**
-
-* Common DTOs, validation logic, and exception handling
-* Idempotency handling service (in-memory & Redis fallback)
-* Enhanced logging (SLF4J/Logback with MDC context)
-* Basic health check component (`/health` endpoint)
-
-### Status
-
-* ⏳ In active development
-* 📋 Tasks clearly outlined and being executed
+```
 
 ---
 
-## 🛠 Quickstart Guide
+## Core Components
 
-**Local Database Setup:**
+### Database Schema
 
-1. **Install PostgreSQL 16** locally.
-2. **Create database and user:**
+- **transactions:** Main UPI transaction ledger
+- **transaction_history:** Audit trail for all status/state changes
+- **idempotency_keys:** Ensures safe, duplicate-free processing
 
-   ```sql
-   CREATE DATABASE openpay_db;
-   CREATE USER openpay_user WITH ENCRYPTED PASSWORD 'openpay_pass';
-   GRANT ALL PRIVILEGES ON DATABASE openpay_db TO openpay_user;
-   ```
-3. **Run migrations**:
+### Key APIs
 
-   * Use Flyway (`mvn flyway:migrate`) or apply via DBeaver/psql.
-4. **Verify schema** by inserting/selecting test data.
-
-**Local API Service Setup:**
-
-1. **Clone the repository:**
-
-   ```shell
-   git clone https://github.com/gracemann365/openpay.git
-   ```
-2. **Run API service:**
-
-   ```shell
-   cd api-service
-   mvn spring-boot:run
-   ```
-3. **Test endpoints via `curl`:**
-
-   ```shell
-   curl -X POST http://localhost:8080/pay -H "Content-Type: application/json" \
-   -d '{"senderUpi":"alice@upi","receiverUpi":"bob@upi","amount":100.25}'
-
-   curl http://localhost:8080/transaction/1/status
-   ```
+- `POST /pay` — Initiate a new payment transaction
+- `GET /transaction/{id}/status` — Retrieve transaction status by ID
 
 ---
 
-## 🎯 Upcoming Modules
+## Quickstart Guide
 
-* **Redis Integration:** Memurai-based Redis queues
-* **Worker Service:** Async transaction processing
-* **Full Native E2E Test:** Complete local system integration and validation
+### Prerequisites
+
+- Java 21
+- Maven 3.9+
+- PostgreSQL 16
+
+### Database Setup
+
+```sql
+CREATE DATABASE openpay_db;
+CREATE USER openpay_user WITH ENCRYPTED PASSWORD 'openpay_pass';
+GRANT ALL PRIVILEGES ON DATABASE openpay_db TO openpay_user;
+```
+
+Run migrations (from the project root):
+
+```sh
+mvn -pl api-service flyway:migrate
+```
+
+### Running the API Service
+
+```sh
+cd api-service
+mvn spring-boot:run
+```
+
+Test the endpoints (with sample data):
+
+```sh
+curl -X POST http://localhost:8080/pay -H "Content-Type: application/json" \
+     -d '{"senderUpi":"alice@upi","receiverUpi":"bob@upi","amount":100.25}'
+
+curl http://localhost:8080/transaction/1/status
+```
 
 ---
+
+## Roadmap
+
+- **Worker Service** (Async Redis queue consumer)
+- **Advanced Testing:** Full local E2E, integration, and audit
+- **Monitoring/Health:** System and API health checks
+- **Production hardening:** Security, error handling, deployment docs
+
+---
+
+## Contributing
+
+1. Fork this repo and clone your fork.
+2. Open a feature branch (`feature/your-feature`) and commit descriptive messages.
+3. Run tests and ensure your code follows the established structure and documentation.
+4. Open a pull request; include context on your changes.
+
+---
+
+## License
+
+Distributed under the MIT License.
+
+---
+
+**Maintainer:** David Grace
+[GitHub: gracemann365](https://github.com/gracemann365)

@@ -1,3 +1,19 @@
+# ──────────────────────────────────────────────────────────────
+# .gitignore for OpenPay UPI Gateway Project
+#
+# This file defines files, folders, and artifacts that should be
+# excluded from Git version control for security, cleanliness,
+# and developer convenience.
+#
+# Key exclusions:
+#   - Build artifacts (target/, logs/, tmp/)
+#   - IDE/project files (.idea/, *.iml, .vscode/)
+#   - System & OS junk (.DS_Store, Thumbs.db, *.swp)
+#   - Local environment/config/secrets (.env, application-*.yml)
+#
+# Adjust and extend as needed for your team or environment.
+# ──────────────────────────────────────────────────────────────
+
 # Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
@@ -21,4 +37,6 @@ application-local.yml
 
 # OS junk
 *.swp
+
+# Service configs (do not commit real secrets to VCS)
 api-service/src/main/resources/application.yml

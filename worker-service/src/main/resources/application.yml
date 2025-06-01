@@ -1,9 +1,16 @@
+# =============================================================================
+# OpenPay Worker Service — Application Configuration
+# =============================================================================
+
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/openpay_db
-    username: postgres
-    password: PG@admin2800
-    driver-class-name: org.postgresql.Driver
+    # --- PostgreSQL Connection (reuse same DB as API service) ---
+    url: jdbc:postgresql://localhost:5432/openpay_db # JDBC URL for Postgres
+    username: postgres # Database username
+    password: PG@admin2800 # Database password (change for prod!)
+    driver-class-name: org.postgresql.Driver # JDBC driver
+
+    # --- HikariCP Pool ---
     hikari:
       maximum-pool-size: 10
       minimum-idle: 2
@@ -12,22 +19,22 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate # Or none/validate depending on your migration setup
-    show-sql: true
+      ddl-auto: validate # Validate schema (no updates/drops in prod!)
+    show-sql: true # Show SQL queries (disable for prod)
     properties:
-      hibernate.format_sql: true
+      hibernate.format_sql: true # Pretty SQL for logs
 
   flyway:
-    enabled: true
+    enabled: true # DB migration management (Flyway)
     baseline-on-migrate: true
-    locations: classpath:db/migration
+    locations: classpath:db/migration # Migration scripts location
 
   data:
     redis:
-      host: 127.0.0.1
+      host: 127.0.0.1 # Redis server (update for prod)
       port: 6379
       database: 0
-      # password: your_password_here
+      # password: your_password_here     # Set if Redis uses auth in prod
       timeout: 2000
       jedis:
         pool:
@@ -37,9 +44,16 @@ spring:
           max-wait: -1
 
 server:
-  port: 8081 # Change ONLY if you want to expose HTTP endpoints for the worker
+  port: 8081 # Worker usually runs as headless/background; no HTTP by default
 
 logging:
   level:
     root: INFO
-    "[org.springframework.data.redis]": DEBUG
+    "[org.springframework.data.redis]": DEBUG # Show Redis ops for troubleshooting (set to INFO in prod)
+
+# =============================================================================
+# Notes:
+# - Use a separate port to avoid clash with API service.
+# - Make sure DB/Redis creds are secured for prod deployments.
+# - Use log aggregation/alerting for worker logs in prod.
+# =============================================================================

@@ -1,3 +1,24 @@
+<!--
+  ─────────────────────────────────────────────────────────────────────
+  OpenPay UPI Gateway — API Service Maven POM
+  This is the Maven module POM for the API Service component.
+
+  Responsibilities:
+    • Declares API-specific dependencies (Spring Boot web, JPA, validation, Redis)
+    • Inherits common properties and dependency management from parent POM
+    • Includes Flyway for DB migrations and test frameworks for local/unit/integration testing
+    • Depends on 'shared-libs' for DTOs, exceptions, and validation
+
+  Best Practices:
+    • Add or update dependencies here only if they are API-service specific
+    • For shared dependencies, update the parent POM
+
+  Author: David Grace
+  Version: 1.0-SNAPSHOT
+  Last updated: 2024-06-01
+  ─────────────────────────────────────────────────────────────────────
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
@@ -14,6 +35,7 @@
   <packaging>jar</packaging>
 
   <dependencies>
+    <!-- Spring Boot core dependencies -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -26,43 +48,46 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
+
+    <!-- Database & Migration -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-test</artifactId>
-    <scope>test</scope>
-</dependency>
-
-
-    <dependency>
-    <groupId>org.flywaydb</groupId>
-    <artifactId>flyway-core</artifactId>
-  </dependency>
-
-  <dependency>
-        <groupId>com.openpay</groupId>
-        <artifactId>shared-libs</artifactId>
-        <version>1.0-SNAPSHOT</version>
+      <groupId>org.flywaydb</groupId>
+      <artifactId>flyway-core</artifactId>
     </dependency>
-   
-   <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-redis</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.apache.commons</groupId>
-    <artifactId>commons-pool2</artifactId>
-</dependency>
 
+    <!-- Shared libraries (DTOs, exceptions, validation) -->
+    <dependency>
+      <groupId>com.openpay</groupId>
+      <artifactId>shared-libs</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
 
+    <!-- Redis integration for async queueing -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-pool2</artifactId>
+    </dependency>
 
+    <!-- Testing -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-   <build>
+
+  <build>
     <plugins>
+      <!-- Flyway plugin for migrations -->
       <plugin>
         <groupId>org.flywaydb</groupId>
         <artifactId>flyway-maven-plugin</artifactId>
@@ -70,4 +95,4 @@
       </plugin>
     </plugins>
   </build>
-</project> 
+</project>
