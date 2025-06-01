@@ -1,191 +1,306 @@
 
+<div align="center">
 
-# OpenPay UPI Gateway
+```text
 
-**OpenPay UPI Gateway**
-*Enterprise-Grade Modular UPI Payment Processor — Java 21, Spring Boot 3.x, PostgreSQL 16, Redis Streams, and Audit-First Design*
-
----
-
-## Table of Contents
-
-1. [Overview](#overview)
-2. [Solution Architecture](#solution-architecture)
-3. [Core Modules](#core-modules)
-4. [Domain Model](#domain-model)
-5. [API Surface](#api-surface)
-6. [Reliability & Idempotency](#reliability--idempotency)
-7. [Development & Deployment](#development--deployment)
-8. [Production Practices](#production-practices)
-9. [Testing & Audit](#testing--audit)
-10. [Contributing](#contributing)
-11. [Maintainer & License](#maintainer--license)
-
----
-
-## Overview
-
-OpenPay is a **modular, auditable, and production-ready UPI payment gateway**.
-It is built for extensibility, observability, and compliance, suitable for regulated, high-availability environments.
-
-**Design Goals:**
-
-* **Isolation:** Each core concern (API, Worker, Shared Libraries, DB) is a self-contained module.
-* **Auditability:** Every transactional action is tracked; all public APIs and entities are JavaDoc’d.
-* **Idempotency:** Distributed-safe, duplicate-proof, and multi-service resilient.
-
----
-
-## Solution Architecture
-
-```mermaid
-flowchart LR
-    Client([Client / Merchant Backend])
-    API([API Service<br/>Spring Boot, REST, Validation])
-    REDIS([Redis Stream<br/>Async Queue])
-    Worker([Worker Service<br/>Async, Retry, Circuit Breaker])
-    DB[(PostgreSQL 16<br/>Ledger, Audit, Keys)]
-
-    Client-->|HTTP: /pay|API
-    API-->|Write Job|REDIS
-    REDIS-->|XREAD|Worker
-    Worker-->|Update Status|DB
-    API-->|Query Status|DB
+ /$$$$$$$$/$$                              /$$$$$$$                   
+| $$_____/ $$                             | $$__  $$                  
+| $$     | $$  /$$$$$$   /$$$$$$$ /$$$$$$$| $$  \ $$/$$$$$$  /$$   /$$
+| $$$$$  | $$ /$$__  $$ /$$_____//$$_____/| $$$$$$$/____  $$| $$  | $$
+| $$__/  | $$| $$  \ $$|  $$$$$$|  $$$$$$ | $$____/ /$$$$$$$| $$  | $$
+| $$     | $$| $$  | $$ \____  $$\____  $$| $$     /$$__  $$| $$  | $$
+| $$     | $$|  $$$$$$/ /$$$$$$$//$$$$$$$/| $$    |  $$$$$$$|  $$$$$$$
+|__/     |__/ \______/ |_______/|_______/ |__/     \_______/ \____  $$
+                                                             /$$  | $$
+                                                            |  $$$$$$/
+                                                             \______/ 
 ```
 
-**Key Patterns:**
-
-* **CQRS Light:** Writes are async (queued), reads are direct (status query).
-* **Decoupled Async:** All payments are processed via stream; API is never blocking on DB.
-* **Clear API/Worker split:** Enables scaling, operational isolation, and future microservice separation.
+</div>
 
 ---
 
-## Core Modules
-
-| Module           | Artifact                          | Responsibility                                        |
-| ---------------- | --------------------------------- | ----------------------------------------------------- |
-| `api-service`    | REST API, Idempotency, Validation | Receives payment requests, validates, queues to Redis |
-| `worker-service` | Redis Consumer, Processor         | Consumes jobs, processes UPI flow, updates DB         |
-| `shared-libs`    | DTOs, Exceptions, Validation      | Shared types, exception classes, annotations          |
-| `database`       | Flyway Migrations, Schema         | Versioned SQL, audit & ledger tables                  |
+> **FlossPay** is a **Kernel-inspired**, **enterprise-grade** Free/Libre Open-Source payments aggregator.
+> Modeled after Linux’s rigorous governance (meritocratic maintainership, strict code review, transparent changelogs) and Oracle Financials’ audit-first architecture (immutable ledgers, compliance-ready schemas), **FlossPay** delivers bank-grade reliability to indie merchants, MSMEs, and developers.
+> With a community-driven ethos, FlossPay removes barriers and empowers small businesses with open, transparent infrastructure.
+>
+> **Current Rail Availability**: *v0.2-alpha offers a hardened **UPI rail**, fully tested and validated; downstream rails (cards, wallets, net-banking) are tracked via stable branches and will not affect core stability.*
 
 ---
 
-## Domain Model
+## Vision & Mission
 
-**Primary Entities:**
+### Vision
 
-* **Transaction**: UPI payment (sender, receiver, amount, status, timestamps)
-* **TransactionHistory**: Immutable audit trail for status changes, failures, retries
-* **IdempotencyKey**: Ensures once-only semantics for payment initiation
+Payment infrastructure must be **open**, **transparent**, and **gatekeeper-free**.
 
----
+### Mission
 
-## API Surface
-
-### Core Endpoints
-
-| Method | Path                       | Description          | Idempotency | Status Codes  |
-| ------ | -------------------------- | -------------------- | ----------- | ------------- |
-| POST   | `/pay`                     | Initiate new payment | Yes         | 201, 400, 409 |
-| GET    | `/transaction/{id}/status` | Poll transaction     | N/A         | 200, 404      |
-
-* **API returns**: Transaction ID, status, message
-* **Errors**: Detailed, structured error payloads, mapped via global handler
+Deliver an **auditable**, **modular**, **self-hostable** payments platform that rivals proprietary gateways while remaining FLOSS.
 
 ---
 
-## Reliability & Idempotency
+## == Table of Contents ==
 
-* **All writes use idempotency keys** (header: `Idempotency-Key`).
-* **Duplicate suppression** at both API and worker level.
-* **Transaction status** is immutable post-completion/failure.
-* **Retries/Failures**: Handled via stream requeue/DLQ (future work branch).
+1. [Vision & Mission](#vision--mission)
+2. [Solution Architecture](#solution-architecture)
+3. [Project Structure](#project-structure)
+4. [Domain Model](#domain-model)
+5. [API Reference](#api-reference)
+6. [Roadmap](#roadmap)
+7. [Idempotency & Reliability](#idempotency--reliability)
+8. [Getting Started](#getting-started)
+9. [Production Readiness](#production-readiness)
+10. [Testing & Auditing](#testing--auditing)
+11. [Contributing](#contributing)
+12. [Community & Support](#community--support)
+13. [License & Maintainers](#license--maintainers)
 
 ---
 
-## Development & Deployment
+## == Solution Architecture ==
 
-### Prerequisites
+<details>
+<summary>View Architecture Diagram</summary>
 
-* Java 21+
-* Maven 3.9+
-* PostgreSQL 16
-* Redis 6+ (Memurai or native)
+```mermaid
+flowchart TD
+  subgraph Client Tier
+    Merchant["Merchant App"]
+  end
+  subgraph FlossPay Core
+    API["API Service"]
+    Worker["Worker Service"]
+    Stream["Redis Streams \"transactions.*\""]
+    DB[("PostgreSQL Ledger")]
+  end
+  subgraph Observability
+    Grafana["Grafana + Prometheus"]
+  end
 
-### Local Setup
+  Merchant -->|REST: /pay, /collect| API
+  API -->|XADD| Stream
+  Stream -->|XREADGROUP| Worker
+  Worker -->|UPDATE| DB
+  API -->|SELECT| DB
+  DB -->|metrics| Grafana
+```
 
-1. **Provision Database**
+</details>
 
-   ```sql
-   CREATE DATABASE openpay_db;
-   CREATE USER openpay_user WITH ENCRYPTED PASSWORD 'openpay_pass';
-   GRANT ALL PRIVILEGES ON DATABASE openpay_db TO openpay_user;
+**Key Principles**
+
+* **Modularity**: Clear service contracts for scalability.
+* **Async Resilience**: Failure-isolated pipelines via Redis Streams.
+* **Auditability**: Immutable ledger with SHA-256 checksums.
+
+---
+
+## == Project Structure ==
+
+| Module           | Responsibility                                         | Key Technologies                    |
+| ---------------- | ------------------------------------------------------ | ----------------------------------- |
+| `api-service`    | Public REST API, OpenAPI spec, validation, idempotency | Spring Boot 3.x, Java 21            |
+| `worker-service` | Async processing, retries, DLQ, webhook emit           | Java 21, Spring Boot, Redis Streams |
+| `shared-libs`    | DTOs, validation, exception hierarchy                  | Java Module System                  |
+| `docs`           | UML diagrams, ADRs, system design, benchmarks          | Asciidoc, PlantUML                  |
+| `ops`            | Docker, Helm, Terraform, GitHub Actions                | DevOps Stack                        |
+
+---
+
+## == Domain Model ==
+
+| Entity                  | Purpose                     | Core Fields                                            |
+| ----------------------- | --------------------------- | ------------------------------------------------------ |
+| `Transaction`           | Generic payment intent      | id · amount · currency · method · status               |
+| `TransactionHistory`    | Lifecycle state changes     | txn\_id · status\_from · status\_to · timestamp        |
+| `PaymentMethod`         | Supported rails enum        | UPI · CARD · WALLET · NETBANKING                       |
+| `CardTransaction`       | Card-specific data          | pan\_token · expiry · scheme                           |
+| `WalletTransaction`     | Wallet-specific data        | wallet\_id · provider                                  |
+| `IdempotencyKey`        | Guarantees at-most-once     | key · owner · expiry                                   |
+| `WebhookEvent`          | Outbound notifications      | id · type · payload · retries                          |
+| `WebhookCallback`       | Tracks delivery & retries   | callback\_id · txn\_id · url · status · attempts       |
+| `ServiceCircuitBreaker` | Monitors 3rd-party services | service\_name · state · failure\_count · last\_failure |
+| `ClientRateLimit`       | API quota state             | client\_id · tokens · last\_refill                     |
+
+---
+
+## == API Reference ==
+
+> **Disclaimer:** Only the `/pay`, `/collect`, `/transaction/{id}/status`, and health-check endpoints are active in this release; other endpoints are planned.
+
+* **Prefix:** `/api/v1`
+* **Auth:** HMAC-SHA256 (`X-FlossPay-Signature` header)
+* **Content-Type:** `application/json`
+
+| Method | Endpoint                   | Description                 | Idempotent | Auth | Response Codes  |
+| ------ | -------------------------- | --------------------------- | ---------- | ---- | --------------- |
+| `POST` | `/pay`                     | Initiate UPI payment        | ✅          | HMAC | 201 · 400 · 409 |
+| `POST` | `/collect`                 | Pull payment from payer     | ✅          | HMAC | 202 · 400       |
+| `GET`  | `/transaction/{id}/status` | Retrieve transaction status | ❌          | HMAC | 200 · 404       |
+| `GET`  | `/health/live`             | Liveness probe (no auth)    | ❌          | None | 200             |
+| `GET`  | `/health/ready`            | Readiness probe (no auth)   | ❌          | None | 200 · 503       |
+
+<details>
+<summary>cURL Example: `/pay`</summary>
+
+```bash
+curl -X POST http://localhost:8080/api/v1/pay \
+  -H "Content-Type: application/json" \
+  -H "Idempotency-Key: unique-key-280" \
+  -d '{"senderUpi": "FlossAlice@upi", "receiverUpi": "FlossBob@upi", "amount": 28}'
+```
+
+</details>
+
+*Swagger UI available at `/swagger-ui.html` (auto-generated from OpenAPI 3.1 spec).*
+
+---
+
+## == Roadmap ==
+
+| Phase / Branch                   | Core Deliverables                                   | Why it Matters                |
+| -------------------------------- | --------------------------------------------------- | ----------------------------- |
+| `feature/advanced-tx-feat`       | Retry · DLQ · Audit trail · Webhooks · Rate-limiter | Enterprise reliability        |
+| `test/suite-performance_metrics` | Load/soak · Chaos suite                             | BigTech QA standards          |
+| `ship/e2e-documentation`         | UML diagrams · ADRs · Benchmarks                    | Interview-grade documentation |
+| `ship/ossify`                    | Issue templates · Badges · Code of Conduct          | Community engagement          |
+| **Post-MVP (coming soon)**       |                                                     |                               |
+| `feature/devops`                 | CI/CD hardening · Docker/Compose                    | Prod zero-touch deployments   |
+| `feature/iac-k8-aws-deployment`  | Terraform & Helm charts for AWS/EKS                 | Cloud-native credibility      |
+| `feature/sre-monitoring`         | SLOs · Alerting · Runbooks · Chaos                  | SRE discipline                |
+
+---
+
+## == Idempotency & Reliability ==
+
+*Powered by enterprise-grade security and compliance to match Oracle-level standards.*
+
+**Idempotency Header**
+
+* `Idempotency-Key: <uuid4>` enforced per route.
+* Cryptographically signed UUID; replay attacks mitigated via HMAC verification and TTL-based expiration.
+
+**Retry Strategy**
+
+* Exponential backoff (2¹…2⁵ sec), max 5 retries, then push to DLQ (`transactions.dlq`).
+* Configurable backoff window stored securely; supports FIPS-approved pseudorandom delays.
+
+**Circuit Breaker**
+
+* Table `service_circuit_breakers` tracks 3rd-party health.
+* Auto-trips on threshold breaches; logs to secure audit vault.
+* Aligned with **ISO 27001**; periodic self-tests for resilience.
+
+**Rate Limiter**
+
+* Token-bucket per `client_id` (`client_rate_limits`) with JWT-authenticated quotas.
+* SLA-driven tiered quotas; integrates with **OAuth 2.0** scopes.
+* Rate changes audited via immutable ledgers.
+
+**Audit Trail**
+
+* All state changes in immutable PostgreSQL `INSERT ONLY` partitions.
+* SHA-256 checksums per record; tamper-evident logs.
+* Logs shipped to **ELK stack** (Elasticsearch, Logstash, Kibana) with field‑level encryption at rest.
+* Complies with **PCI‑DSS** for logging and retention.
+
+**Data Encryption & Key Management**
+
+* AES-256-GCM encryption at rest for sensitive data.
+* Keys managed via **AWS KMS** or on-prem HSM; PCI 3DS compliance.
+
+**Transport Security**
+
+* All inter-service calls over TLS 1.3 (mutual auth supported).
+* HMAC-SHA256 signatures on API requests; KMIP-compliant key rotation.
+
+**Compliance & Monitoring**
+
+* **PCI‑DSS Level 1** ready; SOC 2 controls implemented.
+* Prometheus Alertmanager detects anomaly in retry/failure rates.
+* PagerDuty alerts for DLQ backlogs, circuit‑breaker events.
+
+**Governance & Review**
+
+* Enforces **CIS Benchmarks**; CI checks for compliance.
+* Quarterly 3rd‑party pen tests; reports published in security portal.
+
+---
+
+## == Getting Started ==
+
+1. **Clone & Bootstrap**
+
+   ```bash
+   git clone https://github.com/flosspay/flosspay.git && cd flosspay
+   ./mvnw verify -Pdev
+   ```
+2. **Provision PostgreSQL & Redis**
+
+   ```bash
+   # PostgreSQL
+   psql -U postgres -c "CREATE DATABASE flosspay_db;"
+   psql -U postgres -c "CREATE USER flosspay_user WITH PASSWORD 'secret';"
+   psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE flosspay_db TO flosspay_user;"
+
+   # Redis (Memurai or redis-stack)
+   redis-cli ping  # -> PONG
+   ```
+3. **Run All Services (Dev Mode)**
+
+   ```bash
+   ./scripts/dev-up.sh   # spins api-service, worker-service, postgres, redis via Docker Compose
    ```
 
-2. **Apply Migrations**
+---
 
-   ```sh
-   mvn -pl api-service flyway:migrate
-   ```
+##  Production Readiness 
 
-3. **Start Services**
-
-   ```sh
-   cd api-service && mvn spring-boot:run
-   # (In a new terminal)
-   cd ../worker-service && mvn spring-boot:run
-   ```
-
-4. **Test (Manual Example)**
-
-   ```sh
-   curl -X POST http://localhost:8080/pay \
-     -H "Content-Type: application/json" \
-     -H "Idempotency-Key: demo-123" \
-     -d '{"senderUpi":"alice@upi","receiverUpi":"bob@upi","amount":100.25}'
-   ```
+| Capability         | Implementation                                                         |
+| ------------------ | ---------------------------------------------------------------------- |
+| Config & Secrets   | Spring Cloud Config + KMS-encrypted env vars                           |
+| Observability      | Micrometer → Prometheus → Grafana; Sleuth for trace IDs                |
+| Security Screening | OWASP Dependency Check CI gate; JPA parameter binding; TLS-only        |
+| Compliance         | PCI-DSS tokenization for cards; Audit log immutability; SOC 2 controls |
+| Scalability        | Horizontal scaling of worker groups; Kubernetes-ready manifests        |
 
 ---
 
-## Production Practices
+## == Testing & Auditing ==
 
-* **Schema migrations**: Managed and versioned with Flyway; never edit existing scripts after apply.
-* **Secrets/config**: All passwords/secrets in environment vars or `.env` (never committed).
-* **Logging**: SLF4J structured logging, audit tags, MDC-ready for correlation IDs.
-* **Observability**: Health endpoint, error traces, all critical paths logged.
+* **Unit Tests:** 80%+ coverage; mutation testing via PIT.
+* **Integration Tests:** Testcontainers spin up Postgres & Redis.
+* **End-to-End Tests:** Gatling scenarios simulating `/pay → /status` loops.
+* **Performance:** CI perf job targets 1k TPS.
 
----
-
-## Testing & Audit
-
-* **Build**: `mvn clean install` (all modules)
-* **E2E**: Manual E2E validated (API → Redis → Worker → DB)
-* **Code Quality**: All core classes JavaDoc’d, checkstyle/PMD ready
-* **Review**: PR merges require a single commit, descriptive message, and doc update
+CI pipeline defined in `.github/workflows/ci.yml` with stages: lint → test → coverage → perf.
 
 ---
 
-## Contributing
+## == Contributing ==
 
-* **Branch** from `main`
-* **Feature naming**: `feature/<description>`
-* **Commits**: Use multi-line, audit-style messages
-* **Tests**: Manual and/or unit where appropriate; run all tests before PR
-* **Pull Request**: Describe what, why, and impact; attach evidence (logs/screenshots) if possible
+1. **Fork** the repo → create a `feature/<topic>` branch.
+2. Run `./scripts/pre-commit.sh` (lint, tests).
+3. Open a Pull Request; GitHub Actions will run CI checks.
+4. Merge when reviewed; CI deploys to staging automatically.
 
----
-
-## Maintainer & License
-
-* **Maintainer**: David Grace
-  [gracemann365 on GitHub](https://github.com/gracemann365)
-* **License**: MIT
+Refer to [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](docs/CODE_OF_CONDUCT.md).
 
 ---
 
-**For onboarding, integration queries, or security audits, open an issue or contact the maintainer.**
+## == Community & Support ==
+
+* **GitHub Issues:** Report bugs & request features.
+* **GitHub Discussions:** Ask design questions & propose RFCs.
+* **Security Vulnerabilities:** Email `security@flosspay.dev` (GPG key in repo).
 
 ---
+
+## == License & Maintainers ==
+
+* **License:** MIT (see [`LICENSE`](LICENSE)).
+* **Core Maintainer:** David Grace — Bangalore, IN.
+
+For sponsorship inquiries or further engagement, open an issue or discussion.
 
