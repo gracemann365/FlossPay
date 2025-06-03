@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import com.openpay.shared.dto.PaymentRequest;
 import com.openpay.shared.exception.OpenPayException;
 import com.openpay.shared.model.TransactionEntity;
+import com.openpay.shared.model.TransactionHistoryEntity;
+import com.openpay.shared.repository.TransactionHistoryRepository;
 import com.openpay.shared.repository.TransactionRepository;
 
 import jakarta.annotation.PostConstruct;
@@ -51,6 +53,7 @@ public class TransactionApiProducer {
     private final IdempotencyService idempotencyService;
     private static final Logger log = LoggerFactory.getLogger(TransactionApiProducer.class);
     private final RedisTemplate<Object, Object> redisApiTemplate;
+    private final TransactionHistoryRepository transactionHistoryRepository; // <------- change made: field
 
     /**
      * Constructs the TransactionApiProducer with required dependencies via bean
@@ -59,13 +62,17 @@ public class TransactionApiProducer {
      * @param transactionRepository JPA repository for persisting transactions
      * @param idempotencyService    Service for idempotency key handling
      * @param redisApiTemplate      RedisTemplate for queueing jobs to stream
+     * @param transactionHistoryRepository Repository for transaction history DB
+     *                                    records
      */
     public TransactionApiProducer(TransactionRepository transactionRepository,
             IdempotencyService idempotencyService,
-            RedisTemplate<Object, Object> redisApiTemplate) {
+            RedisTemplate<Object, Object> redisApiTemplate,
+            TransactionHistoryRepository transactionHistoryRepository) {
         this.transactionRepository = transactionRepository;
         this.idempotencyService = idempotencyService;
         this.redisApiTemplate = redisApiTemplate;
+        this.transactionHistoryRepository = transactionHistoryRepository;
     }
 
     /**
@@ -142,6 +149,14 @@ public class TransactionApiProducer {
         liveTransactionEntity.setCreatedAt(LocalDateTime.now());
 
         TransactionEntity savedTransactionEntity = transactionRepository.save(liveTransactionEntity);
+
+        // <------- change made: audit log entry for queued
+        TransactionHistoryEntity audit = new TransactionHistoryEntity();
+        audit.setTransactionId(savedTransactionEntity.getId());
+        audit.setPrevStatus("NONE"); // since this is the first ever state
+        audit.setNewStatus("queued");
+        audit.setChangedAt(savedTransactionEntity.getCreatedAt());
+        transactionHistoryRepository.save(audit);
 
         // Record idempotency key after successful save
         idempotencyService.saveKey(idempotencyKey, savedTransactionEntity.getId());

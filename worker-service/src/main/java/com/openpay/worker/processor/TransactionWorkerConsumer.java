@@ -16,6 +16,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import com.openpay.shared.model.TransactionEntity;
+import com.openpay.shared.model.TransactionHistoryEntity;
+import com.openpay.shared.repository.TransactionHistoryRepository;
 import com.openpay.shared.repository.TransactionRepository;
 import com.openpay.worker.client.NpciUpiGatewayClient;
 
@@ -98,23 +100,28 @@ public class TransactionWorkerConsumer {
     private final RedisTemplate<Object, Object> redisWorkerTemplate;
     private final TransactionRepository transactionRepository;
     private final NpciUpiGatewayClient npciUpiGatewayClient;
+    private final TransactionHistoryRepository transactionHistoryRepository;
 
     /**
      * Constructor: injects dependencies.
      * 
-     * @param redisWorkerTemplate   RedisTemplate for worker stream ops
-     * @param transactionRepository Repository for transaction DB records
-     * @param npciUpiGatewayClient  Client to simulate UPI/NPCI payment
-     *                              gateway
+     * @param redisWorkerTemplate          RedisTemplate for worker stream ops
+     * @param transactionRepository        Repository for transaction DB records
+     * @param npciUpiGatewayClient         Client to simulate UPI/NPCI payment
+     *                                     gateway
+     * @param transactionHistoryRepository Repository for transaction history DB
+     *                                     records
      */
     public TransactionWorkerConsumer(
             RedisTemplate<Object, Object> redisWorkerTemplate,
             TransactionRepository transactionRepository,
-            NpciUpiGatewayClient npciUpiGatewayClient) {
+            NpciUpiGatewayClient npciUpiGatewayClient,
+            TransactionHistoryRepository transactionHistoryRepository) {
 
         this.redisWorkerTemplate = redisWorkerTemplate;
         this.transactionRepository = transactionRepository;
         this.npciUpiGatewayClient = npciUpiGatewayClient;
+        this.transactionHistoryRepository = transactionHistoryRepository;
     }
 
     /**
@@ -191,6 +198,18 @@ public class TransactionWorkerConsumer {
 
     }
 
+    /* ----------- CHANGE MADE: AUDIT LOGGING HELPER ADDED ----------- */
+    // <------- change made: add audit log helper
+    private void logAudit(Long txnId, String prevStatus, String newStatus) {
+        TransactionHistoryEntity audit = new TransactionHistoryEntity();
+        audit.setTransactionId(txnId);
+        audit.setPrevStatus(prevStatus);
+        audit.setNewStatus(newStatus);
+        audit.setChangedAt(LocalDateTime.now());
+        transactionHistoryRepository.save(audit);
+    }
+    /* ---------------------------------------------------------------- */
+
     /**
      * Processes a single transaction payload (one job from the Redis stream).
      * <p>
@@ -230,10 +249,13 @@ public class TransactionWorkerConsumer {
                 return false;
             }
 
-            // Update to "processing"
+            // === Audit wrap for "processing" ===
+            // <------- change made: audit before and after status
+            String prevStatus = TransactionEntity.getStatus();
             TransactionEntity.setStatus("processing");
             TransactionEntity.setUpdatedAt(LocalDateTime.now());
             transactionRepository.save(TransactionEntity);
+            logAudit(txnId, prevStatus, "processing"); // <------- change made: audit call
             log.info("Updated txnId={} to status=processing", txnId);
 
             // Simulate UPI/NPCI call
@@ -243,16 +265,19 @@ public class TransactionWorkerConsumer {
                     TransactionEntity.getAmount(),
                     txnId);
 
-            // Update to "completed" or "failed"
-            if (upiSuccess) {
-                TransactionEntity.setStatus("completed");
-                log.info("Transaction {} completed via UPI", txnId);
-            } else {
-                TransactionEntity.setStatus("failed");
-                log.warn("Transaction {} failed via UPI", txnId);
-            }
-            TransactionEntity.setUpdatedAt(LocalDateTime.now());
-            transactionRepository.save(TransactionEntity);
+          // === Audit wrap for "completed"/"failed" ===
+          prevStatus = TransactionEntity.getStatus();
+          if (upiSuccess) {
+              TransactionEntity.setStatus("completed");
+              logAudit(txnId, prevStatus, "completed"); // <------- change made: audit call
+              log.info("Transaction {} completed via UPI", txnId);
+          } else {
+              TransactionEntity.setStatus("failed");
+              logAudit(txnId, prevStatus, "failed"); // <------- change made: audit call
+              log.warn("Transaction {} failed via UPI", txnId);
+          }
+          TransactionEntity.setUpdatedAt(LocalDateTime.now());
+          transactionRepository.save(TransactionEntity);
 
             return upiSuccess;
         } catch (Exception e) {
