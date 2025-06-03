@@ -59,11 +59,12 @@ public class TransactionApiProducer {
      * Constructs the TransactionApiProducer with required dependencies via bean
      * injection.
      *
-     * @param transactionRepository JPA repository for persisting transactions
-     * @param idempotencyService    Service for idempotency key handling
-     * @param redisApiTemplate      RedisTemplate for queueing jobs to stream
+     * @param transactionRepository        JPA repository for persisting
+     *                                     transactions
+     * @param idempotencyService           Service for idempotency key handling
+     * @param redisApiTemplate             RedisTemplate for queueing jobs to stream
      * @param transactionHistoryRepository Repository for transaction history DB
-     *                                    records
+     *                                     records
      */
     public TransactionApiProducer(TransactionRepository transactionRepository,
             IdempotencyService idempotencyService,
@@ -174,4 +175,105 @@ public class TransactionApiProducer {
 
         return savedTransactionEntity.getId();
     }
+
+    /**
+     * <h2>createCollectRequest</h2>
+     * <p>
+     * Handles the creation and queueing of a UPI <b>collect</b> (pull) transaction
+     * for the OpenPay API.
+     * This method performs all critical workflow steps: validates the request,
+     * enforces idempotency, persists
+     * the collect transaction in the database, creates an audit log, and pushes the
+     * job to the Redis queue for
+     * downstream asynchronous processing.
+     * </p>
+     *
+     * <ol>
+     * <li>Validates sender and receiver UPI (must not be equal)</li>
+     * <li>Enforces idempotency—rejects if the same key was already used</li>
+     * <li>Creates a new transaction entity with status
+     * <code>"requested"</code></li>
+     * <li>Logs audit history for compliance</li>
+     * <li>Stores the idempotency key after successful DB save</li>
+     * <li>Pushes a job to the <b>transactions.main</b> Redis stream for worker
+     * consumption</li>
+     * </ol>
+     *
+     * <b>Note:</b> This method is functionally similar to
+     * {@link #createTransaction(PaymentRequest, String)}
+     * but is used for <b>pull (collect)</b> transactions where the payee requests
+     * money from a payer.
+     *
+     * <h3>Idempotency:</h3>
+     * <ul>
+     * <li>If the provided idempotency key already exists, the method throws an
+     * exception and does not create a duplicate transaction.</li>
+     * <li>New transactions are only created for unique keys.</li>
+     * </ul>
+     *
+     * <h3>Audit & Compliance:</h3>
+     * <ul>
+     * <li>All collect requests are logged in both the transaction table and the
+     * audit trail table.</li>
+     * <li>Idempotency and error cases are logged for security and
+     * troubleshooting.</li>
+     * </ul>
+     *
+     * @param paymentRequestDto Payment request data (payer UPI, payee UPI, amount)
+     * @param idempotencyKey    Unique idempotency key to enforce single-processing
+     *                          for retries
+     * @return transaction ID of the newly created collect request
+     * @throws OpenPayException for business rule violations (duplicate request,
+     *                          same sender/receiver, etc.)
+     *
+     * @author David Grace
+     * @since 1.0
+     */
+    public Long createCollectRequest(PaymentRequest paymentRequestDto, String idempotencyKey) {
+        if (paymentRequestDto.getSenderUpi().equalsIgnoreCase(paymentRequestDto.getReceiverUpi())) {
+            throw new OpenPayException("Sender and receiver UPI must be different");
+        }
+        log.info("Creating collect request for sender={} receiver={}", paymentRequestDto.getSenderUpi(),
+                paymentRequestDto.getReceiverUpi());
+
+        // Idempotency check: throws if duplicate request is detected
+        if (idempotencyService.isDuplicate(idempotencyKey)) {
+            throw new OpenPayException("Duplicate collect request");
+        }
+
+        // Build and persist transaction entity
+        TransactionEntity collectTransaction = new TransactionEntity();
+        collectTransaction.setSenderUpi(paymentRequestDto.getSenderUpi());
+        collectTransaction.setReceiverUpi(paymentRequestDto.getReceiverUpi());
+        collectTransaction.setAmount(paymentRequestDto.getAmount());
+        collectTransaction.setStatus("requested"); // <--- difference!
+        collectTransaction.setCreatedAt(LocalDateTime.now());
+
+        TransactionEntity savedCollect = transactionRepository.save(collectTransaction);
+
+        // Audit log entry
+        TransactionHistoryEntity audit = new TransactionHistoryEntity();
+        audit.setTransactionId(savedCollect.getId());
+        audit.setPrevStatus("NONE");
+        audit.setNewStatus("requested");
+        audit.setChangedAt(savedCollect.getCreatedAt());
+        transactionHistoryRepository.save(audit);
+
+        // Record idempotency key after successful save
+        idempotencyService.saveKey(idempotencyKey, savedCollect.getId());
+
+        // Prepare and push message to Redis Stream
+        Map<Object, Object> streamPayload = new HashMap<>();
+        streamPayload.put("txnId", savedCollect.getId());
+        streamPayload.put("senderUpi", savedCollect.getSenderUpi());
+        streamPayload.put("receiverUpi", savedCollect.getReceiverUpi());
+        streamPayload.put("amount", savedCollect.getAmount().toString());
+        streamPayload.put("type", "collect"); // optional for worker to distinguish
+
+        redisApiTemplate.opsForStream().add("transactions.main", streamPayload);
+        log.info("Enqueued collect {} to transactions.main stream", savedCollect.getId());
+
+        return savedCollect.getId();
+    }
+
 }
