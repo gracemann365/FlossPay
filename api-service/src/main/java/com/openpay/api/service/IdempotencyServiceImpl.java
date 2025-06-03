@@ -5,8 +5,8 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.openpay.api.model.IdempotencyKeyEntity;
-import com.openpay.api.repository.IdempotencyKeyRepository;
+import com.openpay.shared.model.IdempotencyKeyEntity;
+import com.openpay.shared.repository.IdempotencyKeyRepository;
 
 /**
  * Implementation of {@link IdempotencyService} that persists idempotency keys
@@ -30,7 +30,7 @@ import com.openpay.api.repository.IdempotencyKeyRepository;
  * request ID.</li>
  * </ul>
  *
- * @author (Your Name)
+ * @author David Grace
  * @since 1.0
  */
 @Service

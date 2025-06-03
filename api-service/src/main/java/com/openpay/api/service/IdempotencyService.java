@@ -20,7 +20,7 @@ package com.openpay.api.service;
  * appropriate
  * to system guarantees.</strong>
  *
- * @author (Your Name)
+ * @author David Grace
  * @since 1.0
  */
 public interface IdempotencyService {

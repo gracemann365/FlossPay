@@ -1,10 +1,13 @@
-package com.openpay.api.repository;
+package com.openpay.shared.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.openpay.api.model.IdempotencyKeyEntity;
+import com.openpay.shared.model.IdempotencyKeyEntity;
 
 /**
+ * ====================================================================
+ * IdempotencyKeyRepository
+ * --------------------------------------------------------------------
  * Repository interface for managing {@link IdempotencyKeyEntity} records.
  * <p>
  * Provides CRUD and custom query methods to handle idempotency key persistence,

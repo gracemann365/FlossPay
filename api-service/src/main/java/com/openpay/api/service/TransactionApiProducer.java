@@ -10,10 +10,10 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.openpay.api.model.TransactionApiEntity;
-import com.openpay.api.repository.TransactionApiRepository;
 import com.openpay.shared.dto.PaymentRequest;
 import com.openpay.shared.exception.OpenPayException;
+import com.openpay.shared.model.TransactionEntity;
+import com.openpay.shared.repository.TransactionRepository;
 
 import jakarta.annotation.PostConstruct;
 
@@ -47,7 +47,7 @@ import jakarta.annotation.PostConstruct;
 @Service
 public class TransactionApiProducer {
 
-    private final TransactionApiRepository transactionApiRepository;
+    private final TransactionRepository transactionRepository;
     private final IdempotencyService idempotencyService;
     private static final Logger log = LoggerFactory.getLogger(TransactionApiProducer.class);
     private final RedisTemplate<Object, Object> redisApiTemplate;
@@ -56,14 +56,14 @@ public class TransactionApiProducer {
      * Constructs the TransactionApiProducer with required dependencies via bean
      * injection.
      *
-     * @param transactionApiRepository JPA repository for persisting transactions
-     * @param idempotencyService       Service for idempotency key handling
-     * @param redisApiTemplate            RedisTemplate for queueing jobs to stream
+     * @param transactionRepository JPA repository for persisting transactions
+     * @param idempotencyService    Service for idempotency key handling
+     * @param redisApiTemplate      RedisTemplate for queueing jobs to stream
      */
-    public TransactionApiProducer(TransactionApiRepository transactionApiRepository,
+    public TransactionApiProducer(TransactionRepository transactionRepository,
             IdempotencyService idempotencyService,
             RedisTemplate<Object, Object> redisApiTemplate) {
-        this.transactionApiRepository = transactionApiRepository;
+        this.transactionRepository = transactionRepository;
         this.idempotencyService = idempotencyService;
         this.redisApiTemplate = redisApiTemplate;
     }
@@ -114,8 +114,9 @@ public class TransactionApiProducer {
      * </ol>
      * </p>
      *
-     * @param paymentRequestDto        Payment details from the API
-     * @param idempotencyKey Unique client-supplied key for idempotency enforcement
+     * @param paymentRequestDto Payment details from the API
+     * @param idempotencyKey    Unique client-supplied key for idempotency
+     *                          enforcement
      * @return transaction ID of the newly created payment
      * @throws OpenPayException for business rule violations (e.g., duplicate key,
      *                          sender = receiver)
@@ -124,7 +125,8 @@ public class TransactionApiProducer {
         if (paymentRequestDto.getSenderUpi().equalsIgnoreCase(paymentRequestDto.getReceiverUpi())) {
             throw new OpenPayException("Sender and receiver UPI must be different");
         }
-        log.info("Creating transaction for sender={} receiver={}", paymentRequestDto.getSenderUpi(), paymentRequestDto.getReceiverUpi());
+        log.info("Creating transaction for sender={} receiver={}", paymentRequestDto.getSenderUpi(),
+                paymentRequestDto.getReceiverUpi());
 
         // Idempotency check: throws if duplicate request is detected
         if (idempotencyService.isDuplicate(idempotencyKey)) {
@@ -132,29 +134,29 @@ public class TransactionApiProducer {
         }
 
         // Build and persist transaction entity
-        TransactionApiEntity liveTransactionApiEntity = new TransactionApiEntity();
-        liveTransactionApiEntity.setSenderUpi(paymentRequestDto.getSenderUpi());
-        liveTransactionApiEntity.setReceiverUpi(paymentRequestDto.getReceiverUpi());
-        liveTransactionApiEntity.setAmount(paymentRequestDto.getAmount());
-        liveTransactionApiEntity.setStatus("queued");
-        liveTransactionApiEntity.setCreatedAt(LocalDateTime.now());
+        TransactionEntity liveTransactionEntity = new TransactionEntity();
+        liveTransactionEntity.setSenderUpi(paymentRequestDto.getSenderUpi());
+        liveTransactionEntity.setReceiverUpi(paymentRequestDto.getReceiverUpi());
+        liveTransactionEntity.setAmount(paymentRequestDto.getAmount());
+        liveTransactionEntity.setStatus("queued");
+        liveTransactionEntity.setCreatedAt(LocalDateTime.now());
 
-        TransactionApiEntity savedTransactionApiEntity = transactionApiRepository.save(liveTransactionApiEntity);
+        TransactionEntity savedTransactionEntity = transactionRepository.save(liveTransactionEntity);
 
         // Record idempotency key after successful save
-        idempotencyService.saveKey(idempotencyKey, savedTransactionApiEntity.getId());
+        idempotencyService.saveKey(idempotencyKey, savedTransactionEntity.getId());
 
         // Prepare and push message to Redis Stream
         Map<Object, Object> streamPayload = new HashMap<>();
-        streamPayload.put("txnId", savedTransactionApiEntity.getId());
-        streamPayload.put("senderUpi", savedTransactionApiEntity.getSenderUpi());
-        streamPayload.put("receiverUpi", savedTransactionApiEntity.getReceiverUpi());
-        streamPayload.put("amount", savedTransactionApiEntity.getAmount().toString());
+        streamPayload.put("txnId", savedTransactionEntity.getId());
+        streamPayload.put("senderUpi", savedTransactionEntity.getSenderUpi());
+        streamPayload.put("receiverUpi", savedTransactionEntity.getReceiverUpi());
+        streamPayload.put("amount", savedTransactionEntity.getAmount().toString());
 
         redisApiTemplate.opsForValue().set("service-key", "hello-from-service"); // For dev/test only
         redisApiTemplate.opsForStream().add("transactions.main", streamPayload);
-        log.info("Enqueued transaction {} to transactions.main stream", savedTransactionApiEntity.getId());
+        log.info("Enqueued transaction {} to transactions.main stream", savedTransactionEntity.getId());
 
-        return savedTransactionApiEntity.getId();
+        return savedTransactionEntity.getId();
     }
 }

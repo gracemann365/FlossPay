@@ -1,4 +1,3 @@
-
 # OpenPay UPI Gateway — Worker Service
 
 ---
@@ -33,13 +32,14 @@ worker-service/
 ├── config/
 │   └── RedisConfig.java              # RedisTemplate and bean configuration
 ├── model/
-│   └── TransactionWorkerEntity.java  # DB entity for transactions
+│   └── TransactionEntity.java  # DB entity for transactions
 ├── processor/
 │   └── TransactionWorkerConsumer.java # Main background worker/consumer
 ├── repository/
-│   └── TransactionWorkerRepository.java # JPA repository for transactions
+│   └── TransactionRepository.java # JPA repository for transactions
 └── WorkerApplication.java            # Main Spring Boot entrypoint
 ```
+
 ````
 
 ---
@@ -102,3 +102,4 @@ java -jar target/worker-service-*.jar
 - [`database`](../database): Migration scripts, schema docs
 
 ---
+````
