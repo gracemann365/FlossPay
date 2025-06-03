@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -21,20 +20,23 @@ import jakarta.validation.Valid;
 
 /**
  * ========================================================================
- * TransactionController: OpenPay /pay Endpoint (API-Hardening Edition)
+ * TransactionController: OpenPay Payment & Collect Endpoints (API-Hardening
+ * Edition)
  * ------------------------------------------------------------------------
- * - Initiates new UPI payment requests.
- * - Enforces API-level HMAC authentication for all payment requests.
+ * - Initiates new UPI payment requests (/pay).
+ * - Initiates new UPI collect requests (/collect).
+ * - Enforces API-level HMAC authentication for all money movement endpoints.
  * - Validates request input, idempotency, and authenticates using HMAC.
  * - Delegates business logic to TransactionApiProducer (service layer).
  * ========================================================================
- * <b>API Endpoint:</b>
- * POST /pay
+ * <b>API Endpoints:</b>
+ * POST /pay - Initiate a payment
+ * POST /collect - Initiate a collect (pull) request
  * Headers: Idempotency-Key (required), X-HMAC (required)
  * Body: PaymentRequest
  * ========================================================================
  * <b>Security/Audit:</b>
- * - All /pay requests must include valid HMAC, or will be rejected (401/403).
+ * - All requests must include valid HMAC, or will be rejected (401/403).
  * - All failures are reported with appropriate HTTP status for traceability.
  * ========================================================================
  * 
@@ -42,7 +44,6 @@ import jakarta.validation.Valid;
  * @since 1.0
  */
 @RestController
-@RequestMapping("/pay")
 public class TransactionController {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionController.class);
@@ -61,26 +62,61 @@ public class TransactionController {
 
     /**
      * Handles payment initiation requests with HMAC authentication.
-     *
-     * @param request        Payment details (validated)
-     * @param idempotencyKey Unique idempotency key (header)
-     * @param hmacHeader     HMAC signature from client (header)
-     * @return ResponseEntity with transaction status, ID, and audit message
      */
-    @PostMapping
+    @PostMapping("/pay")
     public ResponseEntity<StatusResponse> initiatePayment(
             @Valid @RequestBody PaymentRequest request,
             @RequestHeader("Idempotency-Key") String idempotencyKey,
             @RequestHeader(value = "X-HMAC", required = false) String hmacHeader) {
 
-        // ===== Audit: HMAC header missing =====
+        return handleHmacProtectedRequest(
+                request,
+                idempotencyKey,
+                hmacHeader,
+                (req, key) -> {
+                    Long id = transactionApiProducer.createTransaction(req, key);
+                    return new StatusResponse(id, "QUEUED", "Transaction queued");
+                });
+    }
+
+    /**
+     * Handles collect initiation requests with HMAC authentication.
+     */
+    @PostMapping("/collect")
+    public ResponseEntity<StatusResponse> initiateCollect(
+            @Valid @RequestBody PaymentRequest request,
+            @RequestHeader("Idempotency-Key") String idempotencyKey,
+            @RequestHeader(value = "X-HMAC", required = false) String hmacHeader) {
+
+        return handleHmacProtectedRequest(
+                request,
+                idempotencyKey,
+                hmacHeader,
+                (req, key) -> {
+                    Long id = transactionApiProducer.createCollectRequest(req, key);
+                    return new StatusResponse(id, "REQUESTED", "Collect request queued");
+                });
+    }
+
+    // =========================
+    // INTERNAL HELPER (DRY)
+    // =========================
+
+    /**
+     * Centralized HMAC/auth/error handling for DRY code across endpoints.
+     */
+    private ResponseEntity<StatusResponse> handleHmacProtectedRequest(
+            PaymentRequest request,
+            String idempotencyKey,
+            String hmacHeader,
+            BusinessLogic logic) {
+
         if (hmacHeader == null || hmacHeader.isBlank()) {
-            log.warn("[SECURITY] /pay request missing HMAC header");
+            log.warn("[SECURITY] Request missing HMAC header");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new StatusResponse(null, "ERROR", "Missing HMAC header"));
         }
 
-        // ===== Prepare canonical message for HMAC validation =====
         String message;
         try {
             message = objectMapper.writeValueAsString(request) + idempotencyKey;
@@ -90,16 +126,27 @@ public class TransactionController {
                     .body(new StatusResponse(null, "ERROR", "Internal error (serialization)"));
         }
 
-        // ===== Audit: HMAC validation =====
         if (!hmacAuthService.isValidHmac(message, hmacHeader)) {
-            log.warn("[SECURITY] /pay request failed HMAC validation");
+            log.warn("[SECURITY] Request failed HMAC validation (idempotencyKey={})", idempotencyKey);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new StatusResponse(null, "ERROR", "Invalid HMAC signature"));
         }
 
-        // ===== Business logic: create and queue transaction =====
-        Long id = transactionApiProducer.createTransaction(request, idempotencyKey);
-        StatusResponse response = new StatusResponse(id, "QUEUED", "Transaction queued");
-        return ResponseEntity.ok(response);
+        try {
+            StatusResponse response = logic.process(request, idempotencyKey);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("[BUSINESS] Exception in business logic: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new StatusResponse(null, "ERROR", e.getMessage()));
+        }
+    }
+
+    /**
+     * Functional interface for lambda business logic (for DRY HMAC check)
+     */
+    @FunctionalInterface
+    private interface BusinessLogic {
+        StatusResponse process(PaymentRequest request, String idempotencyKey);
     }
 }
