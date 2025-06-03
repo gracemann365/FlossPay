@@ -42,6 +42,6 @@ public class HealthController {
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         // In production, extend this to check DB, Redis, etc.
-        return ResponseEntity.ok("UP");
+        return ResponseEntity.ok("liveness Check : Im Alive");
     }
 }
