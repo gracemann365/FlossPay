@@ -1,4 +1,4 @@
-package com.openpay.api.model;
+package com.openpay.shared.model;
 
 import java.time.LocalDateTime;
 
@@ -10,6 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
+ * ====================================================================
+ * TransactionHistoryEntity { feature : audit trail }
+ * --------------------------------------------------------------------
  * Entity representing an immutable audit record for a status change in a
  * transaction's lifecycle.
  * <p>
@@ -25,7 +28,7 @@ import jakarta.persistence.Table;
  * <li>Tracks all status transitions for any payment transaction</li>
  * </ul>
  *
- * @author (Your Name)
+ * @author David Grace
  * @since 1.0
  */
 @Entity

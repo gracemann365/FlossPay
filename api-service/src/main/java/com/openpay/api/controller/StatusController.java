@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.openpay.api.model.TransactionApiEntity;
-import com.openpay.api.repository.TransactionApiRepository;
 import com.openpay.shared.dto.StatusResponse;
+import com.openpay.shared.model.TransactionEntity;
+import com.openpay.shared.repository.TransactionRepository;
 
 /**
  * <h2>StatusController</h2>
@@ -19,8 +19,8 @@ import com.openpay.shared.dto.StatusResponse;
  * Exposes the <code>/transaction/{id}/status</code> endpoint for client status
  * polling.
  * </p>
- *
- * <h3>Endpoint</h3>
+    *
+    * <h3>Endpoint</h3>
  * <ul>
  * <li><b>GET /transaction/{id}/status</b> — Fetch the current status for a
  * given transaction ID</li>
@@ -49,22 +49,22 @@ import com.openpay.shared.dto.StatusResponse;
  *
  * @author David Grace
  * @since 1.0
- * @see com.openpay.api.model.TransactionApiEntity
+ * @see com.openpay.shared.model.TransactionEntity
  * @see com.openpay.shared.dto.StatusResponse
  */
 @RestController
 @RequestMapping("/transaction")
 public class StatusController {
 
-    private final TransactionApiRepository transactionApiRepository;
+    private final TransactionRepository transactionRepository;
 
     /**
      * Constructs the controller with its required dependencies.
      * 
-     * @param transactionApiRepository DAO for accessing transaction data
+     * @param transactionRepository DAO for accessing transaction data
      */
-    public StatusController(TransactionApiRepository transactionApiRepository) {
-        this.transactionApiRepository = transactionApiRepository;
+    public StatusController(TransactionRepository transactionRepository) {
+        this.transactionRepository = transactionRepository;
     }
 
     /**
@@ -75,7 +75,7 @@ public class StatusController {
      */
     @GetMapping("/{id}/status")
     public ResponseEntity<?> getStatus(@PathVariable("id") Long id) {
-        Optional<TransactionApiEntity> transaction = transactionApiRepository.findById(id);
+        Optional<TransactionEntity> transaction = transactionRepository.findById(id);
 
         if (transaction.isEmpty()) {
             // Return 404 if transaction is not present

@@ -1,10 +1,13 @@
-package com.openpay.api.repository;
+package com.openpay.shared.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.openpay.api.model.TransactionHistoryEntity;
+import com.openpay.shared.model.TransactionHistoryEntity;
 
 /**
+ * ====================================================================
+ * TransactionHistoryRepository
+ * --------------------------------------------------------------------
  * Repository interface for CRUD and query operations on
  * {@link TransactionHistoryEntity}.
  * <p>

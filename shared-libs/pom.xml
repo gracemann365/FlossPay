@@ -1,6 +1,28 @@
+<!--
+  ─────────────────────────────────────────────────────────────────────
+  OpenPay — Shared Libs Maven POM
+  This POM manages the dependencies for the shared-libs module.
+
+  Responsibilities:
+    • Houses canonical JPA entities, repositories, DTOs, exceptions, and shared utilities
+    • Declares only dependencies required for shared code to build and compile
+    • Does NOT include any service-specific config, drivers, or migration plugins
+
+  Best Practices:
+    • Add only the minimum required for models/repos/DTOs to build
+    • Do NOT add database drivers, migration tools, or service configs here
+    • Maintain a single source of truth for all shared code (no drift)
+    • Audit/compliance: ensures all modules reference identical data models
+
+  Author: David Grace
+  Version: 1.0-SNAPSHOT
+  Last updated: 2024-06-01
+  ─────────────────────────────────────────────────────────────────────
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
                              http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,7 +40,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <!--<version>1.18.32</version>  REMOVE THIS LINE -->
             <scope>provided</scope>
         </dependency>
 
@@ -45,6 +66,22 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- ===================================================================
+             ADDED FOR JPA ENTITY/REPO SHARING (AUDIT-GRADE, PCI/SOX/BFSI READY)
+             ===================================================================
+             Enables @Entity, @Table, @Id, and JpaRepository usage in shared code
+             =================================================================== -->
+        <!-- JPA Annotations -->
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+        </dependency>
+        <!-- Spring Data JPA for JpaRepository interface -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
         </dependency>
     </dependencies>
 </project>

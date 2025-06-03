@@ -1,4 +1,4 @@
-package com.openpay.api.model;
+package com.openpay.shared.model;
 
 import java.time.LocalDateTime;
 
@@ -8,6 +8,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
+ * ====================================================================
+ * IdempotencyKeyEntity
+ * --------------------------------------------------------------------
  * Entity representing a persisted idempotency key record for deduplication of
  * API requests.
  * <p>
@@ -23,7 +26,7 @@ import jakarta.persistence.Table;
  * <li>Associates the key with a transaction and creation timestamp</li>
  * </ul>
  *
- * @author (Your Name)
+ * @author David Grace
  * @since 1.0
  */
 @Entity
