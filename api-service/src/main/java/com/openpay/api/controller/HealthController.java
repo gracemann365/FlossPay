@@ -44,4 +44,10 @@ public class HealthController {
         // In production, extend this to check DB, Redis, etc.
         return ResponseEntity.ok("liveness Check : Im Alive");
     }
+
+    @GetMapping("/health/ready")
+    public ResponseEntity<String> ready() {
+        // MVP: Always READY. Add DB/Redis checks later if needed.
+        return ResponseEntity.ok("READY");
+    }
 }
