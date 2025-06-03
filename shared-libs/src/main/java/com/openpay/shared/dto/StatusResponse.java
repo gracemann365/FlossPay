@@ -16,8 +16,9 @@ package com.openpay.shared.dto;
  *
  * <h3>Usage Example in Controller</h3>
  * 
- * <pre>{@code @GetMapping("/status/{id}")
- * public ResponseEntity<StatusResponse> getStatus( @PathVariable Long id) {
+ * <pre>{@code
+ * @GetMapping("/status/{id}")
+ * public ResponseEntity<StatusResponse> getStatus(@PathVariable Long id) {
  *     Transaction txn = transactionService.getTransactionById(id);
  *     return ResponseEntity.ok(new StatusResponse(
  *             txn.getId(),
@@ -141,3 +142,4 @@ public class StatusResponse {
         this.message = message;
     }
 }
+// ------------------------Test done -----------------------------------------//
