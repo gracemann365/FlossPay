@@ -1,5 +1,7 @@
 package com.openpay.api.controller;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.openpay.api.security.HmacAuthService;
 import com.openpay.api.service.TransactionApiProducer;
 import com.openpay.shared.dto.PaymentRequest;
@@ -41,13 +45,18 @@ import jakarta.validation.Valid;
 @RequestMapping("/pay")
 public class TransactionController {
 
+    private static final Logger log = LoggerFactory.getLogger(TransactionController.class);
+
     private final TransactionApiProducer transactionApiProducer;
     private final HmacAuthService hmacAuthService;
+    private final ObjectMapper objectMapper;
 
     public TransactionController(TransactionApiProducer transactionApiProducer,
-            HmacAuthService hmacAuthService) {
+            HmacAuthService hmacAuthService,
+            ObjectMapper objectMapper) {
         this.transactionApiProducer = transactionApiProducer;
         this.hmacAuthService = hmacAuthService;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -66,13 +75,24 @@ public class TransactionController {
 
         // ===== Audit: HMAC header missing =====
         if (hmacHeader == null || hmacHeader.isBlank()) {
+            log.warn("[SECURITY] /pay request missing HMAC header");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new StatusResponse(null, "ERROR", "Missing HMAC header"));
         }
 
-        // ===== Audit: HMAC validation (use serialized request + key as message) =====
-        String message = request.toString() + idempotencyKey;
+        // ===== Prepare canonical message for HMAC validation =====
+        String message;
+        try {
+            message = objectMapper.writeValueAsString(request) + idempotencyKey;
+        } catch (JsonProcessingException e) {
+            log.error("[SECURITY] Failed to serialize PaymentRequest for HMAC validation", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new StatusResponse(null, "ERROR", "Internal error (serialization)"));
+        }
+
+        // ===== Audit: HMAC validation =====
         if (!hmacAuthService.isValidHmac(message, hmacHeader)) {
+            log.warn("[SECURITY] /pay request failed HMAC validation");
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body(new StatusResponse(null, "ERROR", "Invalid HMAC signature"));
         }
