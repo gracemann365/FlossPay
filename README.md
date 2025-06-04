@@ -64,8 +64,9 @@ Deliver an **Auditable**, **Modular**, **Self-hostable** payments platform that 
 9. [Production Readiness](#production-readiness)
 10. [TestOps , Performance Metrics & Auditing ](#testops)
 11. [Contributing](#contributing)
-12. [Community & Support](#community--support)
-13. [License & Maintainers](#license--maintainers)
+12. [📚 Documentation Suite (Enterprise Roadmap)](#documentation-suite-enterprise-roadmap)
+13. [Community & Support](#community--support)
+14. [License & Maintainers](#license--maintainers)
 
 ---
 
@@ -389,6 +390,32 @@ See [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](docs/CO
 | **GitHub Issues**      | File bugs, feature requests, or regression reports.                                |
 | **GitHub Discussions** | Architecture Q\&A, RFC proposals, roadmap debate.                                  |
 | **Security Contact**   | Report vulnerabilities: `security@flosspay.dev` (GPG key in repo, 24h triage SLA). |
+
+---
+
+## 📚 Documentation Suite (Enterprise Roadmap)
+
+> **FlossPay will provide a full enterprise-grade documentation suite for production and compliance use.
+> Only the most critical docs are included in this MVP; the remainder will roll out as the community and users require.**
+
+| Document / Guide                    | Status         | Description / Purpose                                          |
+| ----------------------------------- | -------------- | -------------------------------------------------------------- |
+|JavaDoc (Inline)                  | ✅ Complete    | All public classes/methods fully documented for developersinstructions                   |
+| Quickstart Guide                    | ✅ Complete    | Fast local setup, run, and test instructions                   |
+| Architecture Overview               | ✅ Complete    | Diagrams and text for system modules, flows, and data paths    |
+| OpenAPI Specification               | ✅ Complete/⏳ | API contract (YAML/Swagger UI)                                 |
+| Performance Benchmarks              | ⏳ Planned     | k6/Gatling test results, load & latency measurements           |
+| Architecture Decision Records (ADR) | ⏳ Planned     | Rationale for tech/design choices (e.g., Redis Streams, audit) |
+| Threat Model & Security Guide       | ⏳ Planned     | Attack surface, mitigations, compliance mapping                |
+| Contributor Handbook                | ⏳ Planned     | Dev onboarding, workflow, branch/pull process                  |
+| Forensic Logging Guide              | ⏳ Planned     | Audit log format, replay, compliance trace                     |
+| API Usage Examples                  | ⏳ Planned     | cURL/HTTPie walkthroughs, sample requests/responses            |
+| FAQ & Troubleshooting               | ⏳ Planned     | Common issues, fixes, and operational advice                   |
+
+---
+
+> **MVP note:** > _To ship fast, only Quickstart, Architecture, and OpenAPI are fully delivered today.
+> All other enterprise docs are on the public roadmap and will be released as prioritized by user and contributor demand._
 
 ---
 
