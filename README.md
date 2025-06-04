@@ -432,6 +432,7 @@ See [`CONTRIBUTING.md`](docs/CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](docs/CO
 | **License**         | [MIT License](LICENSE)                  |
 | **Project Owner**   | David Grace – Founder & Chief Architect |
 | **Core Maintainer** | David Grace                             |
+|  Product Manager, Branding & Launch Strategy                    | Goutham [@gouthamdev](https://github.com/gouthamrajesh)
 
 > **For sponsorship, collaboration, or professional engagement:**
 > Open an Issue or Discussion with your context and intent.
