@@ -1,0 +1,64 @@
+name: 🐞 Bug report
+description: Report a reproducible bug or unexpected behavior
+labels: [bug, needs-triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Thanks for helping make FlossPay better! Please fill out all sections below.**
+  - type: input
+    id: title
+    attributes:
+      label: Bug Summary
+      description: A brief summary of the bug
+      placeholder: "Transaction not updated after status change"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Please provide step-by-step instructions to reproduce the bug.
+      placeholder: |
+        1. Go to '...'
+        2. Run '...'
+        3. Observe error '...'
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: The transaction status should update to "completed".
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: The status remains "queued".
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: |
+        OS, Java version, database, Redis version, any relevant environment info
+      placeholder: |
+        - OS: Ubuntu 22.04
+        - Java: 21
+        - Postgres: 15
+        - Redis: 7
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Screenshots
+      description: Please attach logs or screenshots if available.
+      placeholder: Paste relevant error logs or stack trace here.
+    validations:
+      required: false

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echo "📁 Generating OpenPay Phase 1 Scaffold..."
+echo "📁 Generating FlossPay / OpenPay UPI rail  Phase 1 Scaffold..."
 
 # API Service
 mkdir -p api-service/src/main/java/com/openpay/api/{controller,dto,service,config,util}

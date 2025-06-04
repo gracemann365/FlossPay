@@ -1,5 +1,5 @@
 # ──────────────────────────────────────────────────────────────────────────────
-# OpenPay UPI Gateway — Developer Justfile
+# FlossPay / OpenPay UPI Gateway rail — Developer Justfile
 #
 #   Shortcuts for everyday local development.
 #   Run 'just --list' to see all commands.
