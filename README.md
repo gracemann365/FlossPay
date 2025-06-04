@@ -12,8 +12,12 @@
                                                                             |  $$$$$$/
                                                                              \______/
 ```
+<p>
+  <a href="https://github.com/Gracemann365/flosspay/blob/main/LICENSE">
+    <img alt="License: MIT" src="https://img.shields.io/github/license/Gracemann365/flosspay?logo=opensourceinitiative" />
+  </a>
+</p>
 
----
 
 **FlossPay** is a **Kernel-inspired**, **enterprise-grade** Free/Libre Open-Source payments aggregator.
 Modeled after **Linux’s** rigorous governance (meritocratic maintainership, strict code review, transparent changelogs) and **Oracle Financials** audit-first architecture (immutable ledgers, compliance-ready schemas), **FlossPay** delivers bank-grade reliability to indie merchants, MSMEs, and developers.
