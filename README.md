@@ -62,7 +62,7 @@ Deliver an **Auditable**, **Modular**, **Self-hostable** payments platform that 
 3. [Project Structure](#project-structure)
 4. [Domain Model](#domain-model)
 5. [API Reference](#api-reference)
-6. [Roadmap](#roadmap)
+6. [Roadmap](#roadmap)⚡ Know Where We Stand ⚡
 7. [Idempotency & Reliability](#idempotency--reliability)
 8. [Getting Started](#getting-started)
 9. [Production Readiness](#production-readiness)
@@ -220,18 +220,20 @@ _Swagger/OpenAPI UI is available at [`/swagger-ui.html`](http://localhost:8080/s
 ---
 
 ## Roadmap
+## Upcoming Phases
 
-| Phase / Branch                     | Core Deliverables                                                                                                                                  | Why it Matters / Industry Mapping                                                                |
-| ---------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| `feature/advanced-tx-feat`         | **Retry logic, DLQ, Idempotency (RFC 4122), Circuit Breaker (ISO 27001), Immutable audit trail, Webhooks, API rate-limiter, HMAC auth (RFC 2104)** | Enterprise-grade reliability, compliance (PCI-DSS/SOC2), bank-level security & failure isolation |
-| `test/TestOps-performance_metrics` | **Load & soak (1k+ TPS), chaos/edge-case suite, mutation/fault injection, E2E flows, non-happy path certs**                                        | Stripe/AWS QA, Linux Foundation TestOps, reliability under adversarial conditions                |
-| `feature/api-hardening`            | **Advanced HMAC auth, replay resistance, input validation, abuse detection**                                                                       | No black-boxes; zero-trust/PCI ready; Fintech standard                                           |
-| `ship/e2e-documentation`           | **UML/sequence diagrams, ADRs, threat models, reproducible benchmarks, forensic logs**                                                             | Audit/interview/onboarding-grade documentation                                                   |
-| `ship/ossify`                      | **PR/issue templates, code of conduct, OSS badges, peer review gating**                                                                            | Community trust, contributor standards, compliance                                               |
-| **Post-MVP (coming soon)**         |                                                                                                                                                    |                                                                                                  |
-| `feature/devops`                   | **CI/CD hardening, Docker/Compose, supply-chain attestation**                                                                                      | Prod-ready, zero-touch, auditable deployments                                                    |
-| `feature/iac-k8s-aws-deployment`   | **Terraform, Helm charts for AWS/EKS, RBAC security**                                                                                              | Cloud-native, vendor-neutral, SOC2 mapping                                                       |
-| `feature/sre-monitoring`           | **Prometheus SLOs, Grafana dashboards, alerting, runbooks, chaos engineering, anomaly paging**                                                     | SRE/observability, real incident response, BigTech ops                                           |
+|        **Phase**         |                              **Branch / Feature**                               |                                               **Core Deliverables**                                                |                  **Why It Matters / Industry Mapping**                    |   **Status**   |
+|:-----------------------:|:-------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|:--------------:|
+|   **Phase 1 (MVP)**     | `main`, `feature/advanced-tx-feat`                                              | Retry logic, DLQ, Idempotency, Audit trail, API rate-limiter, HMAC auth, <br>**→ Webhook callbacks & Circuit Breaker** | Bank-grade reliability, compliance (PCI-DSS/SOC2), production-grade rails |   **🟢 HERE**  |
+|  **Phase 1.5 (Rails)**  | `feature/rails-modules`                                                         | Pluggable Cards, Wallets, Net-Banking, Crypto rails, BNPL & custom connectors                                      | Unified infra for all payment methods, real aggregator power               |   🚧 Planned   |
+|  **Phase 2 (TestOps)**  | `test/TestOps-performance_metrics`, `feature/advanced-api-hardening`             | Load & soak (1k+ TPS), chaos suite, mutation testing, advanced HMAC, replay/fraud resistance, <br>edge-case certs  | Stripe/AWS QA, Linux Foundation TestOps, zero-trust fintech                |   🚧 Planned   |
+| **Phase 2.5 (Docs)**    | `ship/documentation-suite`, `ship/e2e-documentation`                             | Full enterprise-grade documentation: UML/sequence, ADRs, threat models, onboarding & forensic logs                  | Audit, onboarding, and compliance-grade docs for users & contributors      |   🚧 Planned   |
+| **Phase 2.9 (OSSify)**  | `ship/advanced-ossify`                                                           | Badges, advanced PR/issue templates, CODEOWNERS, peer review, governance docs, code of conduct                     | Community trust, compliance, contributor culture                           |   🚧 Planned   |
+|   **Phase 3 (DevOps)**  | `feature/devops`                                                                 | Full CI/CD, Docker/Compose, release automation, supply-chain attestation                                           | Prod-ready, auditable, cloud-deployable OSS                                |   🚧 Planned   |
+| **Phase 3.5 (IaC/Plat)**| `feature/iac-k8s-aws-deployment`                                                 | Terraform, Helm, K8s manifests, RBAC, multi-cloud scripts                                                          | Cloud-native, vendor-neutral, SRE/Platform Engg. mapping                   |   🚧 Planned   |
+| **Phase 4 (SRE/Obs)**   | `feature/sre-monitoring`                                                         | Prometheus SLOs, Grafana dashboards, alerting, chaos engineering, cloud perf testing                               | Real SRE/observability, production monitoring & incident response          |   🚧 Planned   |
+| **Release v3+**         | `release/v3`                                                                     | Cloud-ready, Linux-grade, all rails/infra, SRE-complete                                                            | Fully auditable, production OSS—Linux Foundation class                      |   🚧 Planned   |
+
 
 ---
 
