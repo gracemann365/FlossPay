@@ -65,7 +65,7 @@ Deliver an **Auditable**, **Modular**, **Self-hostable** payments platform that 
 10. [TestOps , Performance Metrics & Auditing ](#testops)
 11. [Contributing](#contributing)
 12. [📚 Documentation Suite (Enterprise Roadmap)](#-documentation-suite-enterprise-roadmap)
-13. [Community & Support](#community--support)
+13. [Community & Support](#community--security)
 14. [License & Maintainers](#license--maintainers)
 
 ---
