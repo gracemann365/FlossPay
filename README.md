@@ -12,11 +12,11 @@
                                                                             |  $$$$$$/
                                                                              \______/
 ```
-<p>
+<!--<p>
   <a href="https://github.com/gracemann365/FlossPay/blob/main/LICENSE">
     <img alt="License: MIT" src="https://img.shields.io/github/license/Gracemann365/flosspay?logo=opensourceinitiative" />
   </a>
-</p>
+</p> -->
 
 
 **FlossPay** is a **Kernel-inspired**, **enterprise-grade** Free/Libre Open-Source payments aggregator.
