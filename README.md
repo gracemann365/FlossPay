@@ -13,7 +13,7 @@
                                                                              \______/
 ```
 <p>
-  <a href="https://github.com/Gracemann365/flosspay/blob/main/LICENSE">
+  <a href="https://github.com/gracemann365/FlossPay/blob/main/LICENSE">
     <img alt="License: MIT" src="https://img.shields.io/github/license/Gracemann365/flosspay?logo=opensourceinitiative" />
   </a>
 </p>
